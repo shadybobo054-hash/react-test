@@ -734,7 +734,7 @@ const translations = {
 } as const;
 
 type Translation =
-  (typeof translations)["ar"];
+  (typeof translations)[Language];
 
 function readJSON<T>(
   key: string,
