@@ -24,5 +24,11 @@ export type GameDetails = Game & {
 };
 
 export type Language = "en" | "ar";
+
 export type Theme = "dark" | "light";
-export type Page = "home" | "games" | "favorites" | "settings";
+
+export type Page =
+  | "home"
+  | "games"
+  | "favorites"
+  | "settings";
