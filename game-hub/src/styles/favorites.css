@@ -1,0 +1,79 @@
+.favorites-page{
+  padding:80px 0 120px;
+}
+.favorites-header{
+  position:relative;
+  min-height:270px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:40px;
+  overflow:hidden;
+  margin-bottom:40px;
+  padding:45px;
+  border:1px solid rgba(255,48,79,.15);
+  border-radius:28px;
+  background:
+    radial-gradient(circle at 85% 50%,rgba(255,48,79,.16),transparent 28%),
+    radial-gradient(circle at 60% 0%,rgba(35,140,255,.08),transparent 30%),
+    linear-gradient(135deg,#101f32,#07121f);
+  box-shadow:var(--shadow);
+}
+.favorites-header::before{
+  content:"❤️";
+  position:absolute;
+  right:90px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:170px;
+  opacity:.035;
+  filter:blur(1px);
+}
+[dir="rtl"] .favorites-header::before{
+  right:auto;
+  left:90px;
+}
+.favorite-count{
+  position:relative;
+  z-index:2;
+  width:155px;
+  height:155px;
+  flex:none;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  border:1px solid rgba(255,48,79,.28);
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(255,48,79,.13),rgba(255,48,79,.025) 65%,transparent);
+  box-shadow:0 0 50px rgba(255,48,79,.08),inset 0 0 35px rgba(255,48,79,.04);
+}
+.favorite-count::before{
+  content:"";
+  position:absolute;
+  inset:-9px;
+  border:1px dashed rgba(255,48,79,.16);
+  border-radius:50%;
+  animation:spinSlow 15s linear infinite;
+}
+@keyframes spinSlow{
+  to{transform:rotate(360deg)}
+}
+.favorite-count strong{
+  color:#fff;
+  font-family:"Orbitron",sans-serif;
+  font-size:44px;
+  font-weight:900;
+}
+.favorite-count span{
+  color:var(--red2);
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:1px;
+}
+.favorites-empty{
+  min-height:420px;
+}
+.favorites-grid{
+  padding-bottom:20px;
+}

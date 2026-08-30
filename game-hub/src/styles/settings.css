@@ -1,0 +1,94 @@
+.settings-page{
+  padding:90px 0 130px;
+}
+.settings-page-header{
+  margin-bottom:35px;
+}
+.settings-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:22px;
+}
+.settings-card{
+  position:relative;
+  overflow:hidden;
+  padding:30px;
+  border:1px solid var(--border);
+  border-radius:24px;
+  background:linear-gradient(145deg,rgba(14,31,50,.9),rgba(6,15,25,.95));
+  box-shadow:var(--shadow);
+  transition:.35s;
+}
+.settings-card:hover{
+  transform:translateY(-5px);
+  border-color:rgba(255,48,79,.2);
+}
+.settings-card::before{
+  content:"";
+  position:absolute;
+  width:230px;
+  height:230px;
+  right:-100px;
+  top:-120px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(255,48,79,.12),transparent 70%);
+}
+[dir="rtl"] .settings-card::before{
+  right:auto;
+  left:-100px;
+}
+.settings-card-icon{
+  width:52px;
+  height:52px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:15px;
+  background:rgba(255,255,255,.04);
+  font-size:22px;
+}
+.settings-card-content{
+  margin-top:20px;
+}
+.settings-card-content h3{
+  color:#fff;
+  font-size:20px;
+  font-weight:900;
+}
+.settings-card-content p{
+  margin-top:5px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.8;
+}
+.settings-choice-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:25px;
+}
+.settings-choice-grid button{
+  min-height:58px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  border:1px solid var(--border);
+  border-radius:13px;
+  background:rgba(255,255,255,.035);
+  color:#8fa2b7;
+  font-size:12px;
+  font-weight:800;
+  transition:.3s;
+}
+.settings-choice-grid button:hover{
+  color:#fff;
+  border-color:rgba(255,48,79,.25);
+  background:rgba(255,48,79,.06);
+}
+.settings-choice-grid button.selected{
+  border-color:rgba(255,48,79,.45);
+  background:linear-gradient(135deg,rgba(255,48,79,.16),rgba(35,140,255,.06));
+  color:#fff;
+  box-shadow:0 10px 30px rgba(255,48,79,.08);
+}
