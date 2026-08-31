@@ -9,3 +9,9 @@
 @import "./styles/home.css";
 @import "./styles/theme.css";
 @import "./styles/responsive.css";
+
+html,
+body,
+#root {
+  background: #07080d !important;
+}

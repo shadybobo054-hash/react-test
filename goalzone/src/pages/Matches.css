@@ -1,0 +1,754 @@
+/* =====================================================
+   GOALZONE MATCHES
+===================================================== */
+
+.matches-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(255, 48, 79, 0.12),
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at top left,
+      rgba(50, 100, 255, 0.1),
+      transparent 35%
+    ),
+    #080a12;
+
+  color: #fff;
+  padding-bottom: 80px;
+}
+
+/* =====================================================
+   HERO
+===================================================== */
+
+.matches-hero {
+  position: relative;
+  padding: 90px 7% 70px;
+  overflow: hidden;
+}
+
+.matches-hero::before {
+  content: "";
+  position: absolute;
+
+  width: 500px;
+  height: 500px;
+
+  top: -300px;
+  right: -150px;
+
+  background: #ff304f;
+  opacity: 0.1;
+
+  filter: blur(120px);
+  border-radius: 50%;
+}
+
+.matches-hero-content {
+  position: relative;
+  z-index: 1;
+
+  max-width: 900px;
+}
+
+.matches-kicker {
+  display: inline-block;
+
+  margin-bottom: 15px;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  letter-spacing: 3px;
+
+  color: #ff304f;
+}
+
+.matches-hero h1 {
+  margin: 0 0 15px;
+
+  font-size: clamp(
+    42px,
+    6vw,
+    78px
+  );
+
+  font-weight: 900;
+}
+
+.matches-hero p {
+  margin: 0;
+
+  color: #9da4b8;
+
+  font-size: 18px;
+  line-height: 1.8;
+}
+
+/* =====================================================
+   CONTROLS
+===================================================== */
+
+.matches-controls {
+  width: min(
+    1200px,
+    86%
+  );
+
+  margin: 0 auto 45px;
+
+  display: flex;
+
+  align-items: end;
+  justify-content: space-between;
+
+  gap: 25px;
+
+  padding: 20px;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.08);
+
+  background:
+    rgba(255, 255, 255, 0.035);
+
+  backdrop-filter: blur(18px);
+
+  border-radius: 24px;
+}
+
+/* =====================================================
+   DAY TABS
+===================================================== */
+
+.day-tabs {
+  display: flex;
+
+  gap: 10px;
+
+  flex-wrap: wrap;
+}
+
+.day-tabs button {
+  min-width: 110px;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.08);
+
+  background:
+    rgba(255, 255, 255, 0.035);
+
+  color: #aeb5c8;
+
+  padding: 12px 18px;
+
+  border-radius: 15px;
+
+  cursor: pointer;
+
+  transition:
+    0.25s ease;
+}
+
+.day-tabs button span {
+  display: block;
+
+  font-weight: 800;
+
+  color: #fff;
+
+  font-size: 15px;
+}
+
+.day-tabs button small {
+  display: block;
+
+  margin-top: 4px;
+
+  font-size: 10px;
+
+  color: #777f94;
+
+  text-transform: uppercase;
+
+  letter-spacing: 1px;
+}
+
+.day-tabs button:hover {
+  transform: translateY(-2px);
+
+  border-color:
+    rgba(255, 48, 79, 0.4);
+}
+
+.day-tabs button.active {
+  background:
+    linear-gradient(
+      135deg,
+      #ff304f,
+      #d9163b
+    );
+
+  border-color: transparent;
+
+  box-shadow:
+    0 10px 30px
+      rgba(255, 48, 79, 0.25);
+}
+
+.day-tabs button.active span {
+  color: #fff;
+}
+
+.day-tabs button.active small {
+  color: rgba(
+    255,
+    255,
+    255,
+    0.7
+  );
+}
+
+.live-tab span {
+  display: flex !important;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 7px;
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+
+  display: inline-block;
+
+  border-radius: 50%;
+
+  background: #ff304f;
+
+  box-shadow:
+    0 0 10px #ff304f;
+}
+
+/* =====================================================
+   LEAGUE FILTER
+===================================================== */
+
+.league-filter {
+  min-width: 220px;
+}
+
+.league-filter label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #777f94;
+
+  font-size: 12px;
+}
+
+.league-filter select {
+  width: 100%;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.08);
+
+  background: #111521;
+
+  color: #fff;
+
+  padding: 13px 15px;
+
+  border-radius: 13px;
+
+  outline: none;
+
+  cursor: pointer;
+}
+
+/* =====================================================
+   SECTION
+===================================================== */
+
+.matches-list-section {
+  width: min(
+    1200px,
+    86%
+  );
+
+  margin: auto;
+}
+
+.matches-section-head {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: end;
+
+  margin-bottom: 25px;
+}
+
+.matches-section-head span {
+  color: #ff304f;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  letter-spacing: 2px;
+}
+
+.matches-section-head h2 {
+  margin: 7px 0 0;
+
+  font-size: 30px;
+}
+
+.matches-count {
+  padding: 10px 15px;
+
+  border-radius: 12px;
+
+  background:
+    rgba(255, 255, 255, 0.05);
+
+  color: #fff;
+
+  font-weight: 800;
+}
+
+.matches-count span {
+  color: #777f94;
+  letter-spacing: 0;
+}
+
+/* =====================================================
+   GRID
+===================================================== */
+
+.matches-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 18px;
+}
+
+/* =====================================================
+   MATCH CARD
+===================================================== */
+
+.match-card {
+  position: relative;
+
+  overflow: hidden;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.07);
+
+  border-radius: 22px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.055),
+      rgba(255, 255, 255, 0.018)
+    );
+
+  backdrop-filter: blur(16px);
+
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.match-card:hover {
+  transform: translateY(-5px);
+
+  border-color:
+    rgba(255, 48, 79, 0.3);
+
+  box-shadow:
+    0 20px 50px
+      rgba(0, 0, 0, 0.25);
+}
+
+.match-card.is-live {
+  border-color:
+    rgba(255, 48, 79, 0.35);
+
+  box-shadow:
+    0 0 35px
+      rgba(255, 48, 79, 0.08);
+}
+
+/* =====================================================
+   CARD TOP
+===================================================== */
+
+.match-card-top {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  padding: 17px 20px;
+
+  border-bottom: 1px solid
+    rgba(255, 255, 255, 0.06);
+}
+
+.match-league span {
+  color: #9ca4b8;
+
+  font-size: 12px;
+
+  font-weight: 700;
+}
+
+.live-badge {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  color: #ff304f;
+
+  font-size: 10px;
+
+  font-weight: 900;
+
+  letter-spacing: 1px;
+}
+
+.live-badge i {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #ff304f;
+
+  box-shadow:
+    0 0 10px #ff304f;
+}
+
+/* =====================================================
+   TEAMS
+===================================================== */
+
+.match-teams {
+  display: grid;
+
+  grid-template-columns:
+    1fr 100px 1fr;
+
+  align-items: center;
+
+  padding: 28px 20px;
+}
+
+.team {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  text-align: center;
+
+  gap: 10px;
+}
+
+.team strong {
+  font-size: 14px;
+
+  line-height: 1.4;
+}
+
+.team-logo {
+  width: 62px;
+  height: 62px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 18px;
+
+  background:
+    rgba(255, 255, 255, 0.06);
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.06);
+
+  overflow: hidden;
+}
+
+.team-logo img {
+  width: 80%;
+  height: 80%;
+
+  object-fit: contain;
+}
+
+.team-logo span {
+  font-size: 25px;
+}
+
+/* =====================================================
+   CENTER
+===================================================== */
+
+.match-middle {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 7px;
+}
+
+.match-time {
+  font-size: 24px;
+
+  font-weight: 900;
+}
+
+.score {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  font-size: 29px;
+
+  font-weight: 900;
+}
+
+.score b {
+  color: #646c80;
+}
+
+.match-status {
+  font-size: 10px;
+
+  color: #777f94;
+
+  font-weight: 800;
+}
+
+.match-status.live {
+  color: #ff304f;
+}
+
+/* =====================================================
+   FOOTER
+===================================================== */
+
+.match-card-footer {
+  display: flex;
+
+  justify-content: space-between;
+
+  gap: 10px;
+
+  padding: 14px 20px;
+
+  border-top: 1px solid
+    rgba(255, 255, 255, 0.06);
+
+  color: #6f778a;
+
+  font-size: 10px;
+}
+
+.match-card-footer span {
+  max-width: 50%;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+/* =====================================================
+   STATES
+===================================================== */
+
+.matches-state {
+  min-height: 300px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  text-align: center;
+
+  border: 1px dashed
+    rgba(255, 255, 255, 0.08);
+
+  border-radius: 24px;
+
+  background:
+    rgba(255, 255, 255, 0.02);
+}
+
+.matches-state h3 {
+  margin: 15px 0 5px;
+
+  font-size: 20px;
+}
+
+.matches-state p {
+  margin: 0;
+
+  color: #777f94;
+}
+
+.state-icon {
+  font-size: 40px;
+}
+
+.matches-state.error button {
+  margin-top: 20px;
+
+  border: 0;
+
+  background: #ff304f;
+
+  color: #fff;
+
+  padding: 11px 22px;
+
+  border-radius: 12px;
+
+  cursor: pointer;
+
+  font-weight: 800;
+}
+
+/* =====================================================
+   LOADER
+===================================================== */
+
+.loader {
+  width: 40px;
+  height: 40px;
+
+  border: 3px solid
+    rgba(255, 255, 255, 0.1);
+
+  border-top-color: #ff304f;
+
+  border-radius: 50%;
+
+  animation:
+    spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 900px) {
+  .matches-controls {
+    align-items: stretch;
+
+    flex-direction: column;
+  }
+
+  .league-filter {
+    width: 100%;
+  }
+
+  .matches-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .matches-hero {
+    padding: 60px 6% 45px;
+  }
+
+  .matches-controls,
+  .matches-list-section {
+    width: 90%;
+  }
+
+  .day-tabs {
+    display: grid;
+
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+  .day-tabs button {
+    min-width: 0;
+  }
+
+  .match-teams {
+    grid-template-columns:
+      1fr 75px 1fr;
+
+    padding: 22px 12px;
+  }
+
+  .team-logo {
+    width: 52px;
+    height: 52px;
+  }
+
+  .team strong {
+    font-size: 12px;
+  }
+
+  .score {
+    font-size: 23px;
+  }
+
+  .match-time {
+    font-size: 19px;
+  }
+
+  .match-card-footer {
+    flex-direction: column;
+  }
+
+  .match-card-footer span {
+    max-width: 100%;
+  }
+}
