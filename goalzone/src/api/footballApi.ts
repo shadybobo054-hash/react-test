@@ -1,11 +1,16 @@
+
 // src/api/footballApi.ts
+// =====================================================
+// GOALZONE — ESPN SOCCER API
+// لا يحتاج VITE_API_KEY
+// =====================================================
 
 const BASE_URL =
   "https://site.api.espn.com/apis/site/v2/sports/soccer";
 
-// ======================================================
+// =====================================================
 // TYPES
-// ======================================================
+// =====================================================
 
 export type ApiTeam = {
   id?: string;
@@ -21,9 +26,6 @@ export type ApiCompetitor = {
   score?: string;
   team: ApiTeam;
 };
-
-// Compatibility alias
-export type Competitor = ApiCompetitor;
 
 export type ApiStatus = {
   type?: {
@@ -42,7 +44,6 @@ export type ApiCompetition = {
   date?: string;
   competitors: ApiCompetitor[];
   status?: ApiStatus;
-
   venue?: {
     fullName?: string;
   };
@@ -59,49 +60,17 @@ export type ApiEvent = {
   id: string;
   name: string;
   date: string;
-
   competitions?: ApiCompetition[];
-
   league?: ApiLeague;
-
   season?: {
     name?: string;
     year?: number;
   };
 };
 
-// ======================================================
-// NEWS
-// ======================================================
-
-export type NewsArticle = {
-  id: string;
-  headline: string;
-  description?: string;
-  published?: string;
-  image?: string;
-  link?: string;
-  source?: string;
-  category?: string;
-};
-
-// ======================================================
-// TRANSFERS
-// ======================================================
-
-export type Transaction = {
-  id: string;
-  player: string;
-  from: string;
-  to: string;
-  date: string;
-  type?: string;
-  image?: string;
-};
-
-// ======================================================
+// =====================================================
 // LEAGUES
-// ======================================================
+// =====================================================
 
 export const LEAGUES = {
   premierLeague: "eng.1",
@@ -112,252 +81,404 @@ export const LEAGUES = {
   eredivisie: "ned.1",
   primeiraLiga: "por.1",
   superLig: "tur.1",
-  egyptianLeague: "egy.1",
-  saudiLeague: "sau.1",
-  belgianLeague: "bel.1",
-  scottishLeague: "sco.1",
-  greekLeague: "gre.1",
-  brazilianLeague: "bra.1",
-  argentineLeague: "arg.1",
-  mexicanLeague: "mex.1",
-  mls: "usa.1",
   championsLeague: "uefa.champions",
   europaLeague: "uefa.europa",
+  egyptianLeague: "egy.1",
+  saudiLeague: "ksa.1",
+  mls: "usa.1",
 } as const;
 
-// ======================================================
-// LEAGUE INFORMATION
-// ======================================================
-
 export const ALL_LEAGUES = [
-  {
-    id: LEAGUES.premierLeague,
-    name: "الدوري الإنجليزي الممتاز",
-    country: "England",
-    flag: "🇬🇧",
-  },
-  {
-    id: LEAGUES.laLiga,
-    name: "الدوري الإسباني",
-    country: "Spain",
-    flag: "🇪🇸",
-  },
-  {
-    id: LEAGUES.serieA,
-    name: "الدوري الإيطالي",
-    country: "Italy",
-    flag: "🇮🇹",
-  },
-  {
-    id: LEAGUES.bundesliga,
-    name: "الدوري الألماني",
-    country: "Germany",
-    flag: "🇩🇪",
-  },
-  {
-    id: LEAGUES.ligue1,
-    name: "الدوري الفرنسي",
-    country: "France",
-    flag: "🇫🇷",
-  },
-  {
-    id: LEAGUES.eredivisie,
-    name: "الدوري الهولندي",
-    country: "Netherlands",
-    flag: "🇳🇱",
-  },
-  {
-    id: LEAGUES.primeiraLiga,
-    name: "الدوري البرتغالي",
-    country: "Portugal",
-    flag: "🇵🇹",
-  },
-  {
-    id: LEAGUES.superLig,
-    name: "الدوري التركي",
-    country: "Turkey",
-    flag: "🇹🇷",
-  },
-  {
-    id: LEAGUES.egyptianLeague,
-    name: "الدوري المصري",
-    country: "Egypt",
-    flag: "🇪🇬",
-  },
-  {
-    id: LEAGUES.saudiLeague,
-    name: "الدوري السعودي",
-    country: "Saudi Arabia",
-    flag: "🇸🇦",
-  },
-  {
-    id: LEAGUES.championsLeague,
-    name: "دوري أبطال أوروبا",
-    country: "Europe",
-    flag: "🏆",
-  },
-  {
-    id: LEAGUES.europaLeague,
-    name: "الدوري الأوروبي",
-    country: "Europe",
-    flag: "🏆",
-  },
-  {
-    id: LEAGUES.belgianLeague,
-    name: "الدوري البلجيكي",
-    country: "Belgium",
-    flag: "🇧🇪",
-  },
-  {
-    id: LEAGUES.scottishLeague,
-    name: "الدوري الإسكتلندي",
-    country: "Scotland",
-    flag: "🏴",
-  },
-  {
-    id: LEAGUES.greekLeague,
-    name: "الدوري اليوناني",
-    country: "Greece",
-    flag: "🇬🇷",
-  },
-  {
-    id: LEAGUES.brazilianLeague,
-    name: "الدوري البرازيلي",
-    country: "Brazil",
-    flag: "🇧🇷",
-  },
-  {
-    id: LEAGUES.argentineLeague,
-    name: "الدوري الأرجنتيني",
-    country: "Argentina",
-    flag: "🇦🇷",
-  },
-  {
-    id: LEAGUES.mexicanLeague,
-    name: "الدوري المكسيكي",
-    country: "Mexico",
-    flag: "🇲🇽",
-  },
-  {
-    id: LEAGUES.mls,
-    name: "الدوري الأمريكي",
-    country: "USA",
-    flag: "🇺🇸",
-  },
-];
+  ["eng.1", "الدوري الإنجليزي الممتاز"],
+  ["esp.1", "الدوري الإسباني"],
+  ["ita.1", "الدوري الإيطالي"],
+  ["ger.1", "الدوري الألماني"],
+  ["fra.1", "الدوري الفرنسي"],
+  ["ned.1", "الدوري الهولندي"],
+  ["por.1", "الدوري البرتغالي"],
+  ["tur.1", "الدوري التركي"],
+  ["uefa.champions", "دوري أبطال أوروبا"],
+  ["uefa.europa", "الدوري الأوروبي"],
+  ["usa.1", "الدوري الأمريكي"],
+  ["ksa.1", "الدوري السعودي"],
+  ["egy.1", "الدوري المصري"],
+].map(([id, name]) => ({
+  id,
+  name,
+}));
 
-// ======================================================
-// DATE HELPERS
-// ======================================================
+// =====================================================
+// HELPERS
+// =====================================================
 
-function formatDate(offset = 0): string {
+function formatDate(date = new Date()) {
+  const year = date.getFullYear();
+
+  const month = String(
+    date.getMonth() + 1
+  ).padStart(2, "0");
+
+  const day = String(
+    date.getDate()
+  ).padStart(2, "0");
+
+  return `${year}${month}${day}`;
+}
+
+function dateWithOffset(offset: number) {
   const date = new Date();
 
-  date.setDate(date.getDate() + offset);
+  date.setDate(
+    date.getDate() + offset
+  );
 
-  const year = date.getFullYear();
-
-  const month = String(
-    date.getMonth() + 1
-  ).padStart(2, "0");
-
-  const day = String(
-    date.getDate()
-  ).padStart(2, "0");
-
-  return `${year}${month}${day}`;
+  return formatDate(date);
 }
 
-function formatDateObject(date: Date): string {
-  const year = date.getFullYear();
+// =====================================================
+// API REQUEST
+// =====================================================
 
-  const month = String(
-    date.getMonth() + 1
-  ).padStart(2, "0");
+async function apiRequest(
+  league: string,
+  date?: string
+) {
+  const selectedDate =
+    date ?? formatDate();
 
-  const day = String(
-    date.getDate()
-  ).padStart(2, "0");
+  const url =
+    `${BASE_URL}/${league}/scoreboard` +
+    `?dates=${selectedDate}` +
+    `&limit=100`;
 
-  return `${year}${month}${day}`;
+  const response =
+    await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(
+      `ESPN API Error: ${response.status}`
+    );
+  }
+
+  return response.json();
 }
 
-// ======================================================
-// GET ONE LEAGUE
-// ======================================================
+// =====================================================
+// STATUS
+// =====================================================
+
+function getStatusState(
+  status: any
+): string {
+  if (!status) {
+    return "pre";
+  }
+
+  if (status.type?.state) {
+    return status.type.state;
+  }
+
+  const state =
+    status.type?.name?.toLowerCase() ?? "";
+
+  if (
+    state.includes("progress") ||
+    state.includes("live")
+  ) {
+    return "in";
+  }
+
+  if (
+    status.type?.completed ||
+    state.includes("final")
+  ) {
+    return "post";
+  }
+
+  return "pre";
+}
+
+// =====================================================
+// NORMALIZE ESPN EVENT
+// =====================================================
+
+function normalizeFixture(
+  event: any,
+  leagueId: string
+): ApiEvent {
+  const competition =
+    event.competitions?.[0];
+
+  const competitors =
+    competition?.competitors ?? [];
+
+  const home =
+    competitors.find(
+      (team: any) =>
+        team.homeAway === "home"
+    );
+
+  const away =
+    competitors.find(
+      (team: any) =>
+        team.homeAway === "away"
+    );
+
+  const rawStatus =
+    competition?.status;
+
+  const statusState =
+    getStatusState(rawStatus);
+
+  const homeTeam: ApiTeam = {
+    id: home?.team?.id
+      ? String(home.team.id)
+      : undefined,
+
+    displayName:
+      home?.team?.displayName ??
+      home?.team?.name ??
+      "الفريق المضيف",
+
+    shortDisplayName:
+      home?.team?.shortDisplayName ??
+      home?.team?.displayName ??
+      "Home",
+
+    abbreviation:
+      home?.team?.abbreviation ??
+      "HOME",
+
+    logo:
+      home?.team?.logo ??
+      "",
+  };
+
+  const awayTeam: ApiTeam = {
+    id: away?.team?.id
+      ? String(away.team.id)
+      : undefined,
+
+    displayName:
+      away?.team?.displayName ??
+      away?.team?.name ??
+      "الفريق الضيف",
+
+    shortDisplayName:
+      away?.team?.shortDisplayName ??
+      away?.team?.displayName ??
+      "Away",
+
+    abbreviation:
+      away?.team?.abbreviation ??
+      "AWAY",
+
+    logo:
+      away?.team?.logo ??
+      "",
+  };
+
+  const homeCompetitor: ApiCompetitor = {
+    id: home?.id
+      ? String(home.id)
+      : homeTeam.id,
+
+    homeAway: "home",
+
+    score:
+      home?.score !== undefined
+        ? String(home.score)
+        : undefined,
+
+    team: homeTeam,
+  };
+
+  const awayCompetitor: ApiCompetitor = {
+    id: away?.id
+      ? String(away.id)
+      : awayTeam.id,
+
+    homeAway: "away",
+
+    score:
+      away?.score !== undefined
+        ? String(away.score)
+        : undefined,
+
+    team: awayTeam,
+  };
+
+  const date =
+    event.date ??
+    competition?.date ??
+    new Date().toISOString();
+
+  return {
+    id: String(
+      event.id ?? ""
+    ),
+
+    name:
+      event.name ??
+      `${homeTeam.displayName} vs ${awayTeam.displayName}`,
+
+    date,
+
+    competitions: [
+      {
+        id: String(
+          competition?.id ??
+          event.id ??
+          ""
+        ),
+
+        date,
+
+        competitors: [
+          homeCompetitor,
+          awayCompetitor,
+        ],
+
+        status: {
+          type: {
+            id:
+              rawStatus?.type?.id ??
+              "",
+
+            name:
+              rawStatus?.type?.name ??
+              "",
+
+            state:
+              statusState,
+
+            completed:
+              Boolean(
+                rawStatus?.type?.completed
+              ),
+
+            description:
+              rawStatus?.type
+                ?.description ??
+              "",
+
+            detail:
+              rawStatus?.type?.detail ??
+              "",
+
+            shortDetail:
+              rawStatus?.type
+                ?.shortDetail ??
+              "",
+          },
+        },
+
+        venue: {
+          fullName:
+            competition?.venue
+              ?.fullName ??
+            competition?.venue
+              ?.address ??
+            "",
+        },
+      },
+    ],
+
+    league: {
+      id: leagueId,
+
+      name:
+        event.league?.name ??
+        getLeagueName(leagueId),
+
+      abbreviation:
+        leagueId,
+
+      logo:
+        event.league?.logo ??
+        "",
+    },
+
+    season: {
+      name:
+        event.season?.displayName ??
+        event.season?.name ??
+        "",
+
+      year:
+        event.season?.year ??
+        new Date(date).getFullYear(),
+    },
+  };
+}
+
+// =====================================================
+// LEAGUE NAME
+// =====================================================
+
+function getLeagueName(
+  leagueId: string
+) {
+  return (
+    ALL_LEAGUES.find(
+      (league) =>
+        league.id === leagueId
+    )?.name ??
+    "Football"
+  );
+}
+
+// =====================================================
+// GET MATCHES
+// =====================================================
 
 export async function getMatches(
   league: string,
   date?: string
 ): Promise<ApiEvent[]> {
-  const selectedDate =
-    date ?? formatDate(0);
-
-  const url =
-    `${BASE_URL}/${league}/scoreboard` +
-    `?dates=${selectedDate}` +
-    `&limit=1000`;
-
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error(
-      `API Error ${response.status}`
+  const data =
+    await apiRequest(
+      league,
+      date
     );
-  }
 
-  const data = await response.json();
-
-  const leagueInfo = ALL_LEAGUES.find(
-    item => item.id === league
-  );
-
-  return (data.events ?? []).map(
-    (event: ApiEvent) => ({
-      ...event,
-
-      league: {
-        id: league,
-
-        name:
-          leagueInfo?.name ??
-          "Football",
-
-        abbreviation:
-          leagueInfo?.country ??
-          league,
-      },
-    })
+  return (
+    data.events ?? []
+  ).map(
+    (event: any) =>
+      normalizeFixture(
+        event,
+        league
+      )
   );
 }
 
-// ======================================================
-// GET ALL LEAGUES
-// ======================================================
+// =====================================================
+// GET ALL MATCHES
+// =====================================================
 
 export async function getAllMatches(
   date?: string
 ): Promise<ApiEvent[]> {
-  const selectedDate =
-    date ?? formatDate(0);
-
   const results =
     await Promise.all(
-      ALL_LEAGUES.map(async league => {
-        try {
-          return await getMatches(
-            league.id,
-            selectedDate
-          );
-        } catch (error) {
-          console.warn(
-            `Could not load ${league.name}`,
-            error
-          );
+      ALL_LEAGUES.map(
+        async (league) => {
+          try {
+            return await getMatches(
+              league.id,
+              date
+            );
+          } catch (error) {
+            console.error(
+              `Failed to load ${league.name}`,
+              error
+            );
 
-          return [];
+            return [];
+          }
         }
-      })
+      )
     );
 
   return results
@@ -369,64 +490,60 @@ export async function getAllMatches(
     );
 }
 
-// ======================================================
-// TODAY
-// ======================================================
+// =====================================================
+// DATE FILTERS
+// =====================================================
 
 export function getTodayMatches() {
   return getAllMatches(
-    formatDate(0)
+    formatDate()
   );
 }
-
-// ======================================================
-// YESTERDAY
-// ======================================================
 
 export function getYesterdayMatches() {
   return getAllMatches(
-    formatDate(-1)
+    dateWithOffset(-1)
   );
 }
-
-// ======================================================
-// TOMORROW
-// ======================================================
 
 export function getTomorrowMatches() {
   return getAllMatches(
-    formatDate(1)
+    dateWithOffset(1)
   );
 }
-
-// ======================================================
-// CUSTOM DATE
-// ======================================================
 
 export function getMatchesByDate(
   date: Date
 ) {
   return getAllMatches(
-    formatDateObject(date)
+    formatDate(date)
   );
 }
 
-// ======================================================
-// LIVE
-// ======================================================
+// =====================================================
+// LIVE MATCHES
+// =====================================================
 
-export async function getLiveMatches(): Promise<ApiEvent[]> {
+export async function getLiveMatches(): Promise<
+  ApiEvent[]
+> {
+  const today =
+    formatDate();
+
   const matches =
-    await getTodayMatches();
+    await getAllMatches(
+      today
+    );
 
   return matches.filter(
-    match => isMatchLive(match)
+    (match) =>
+      isMatchLive(match)
   );
 }
 
-// ======================================================
+// =====================================================
 // MATCH STATUS
-// ======================================================
+// =====================================================
 
 export function getMatchStatus(
   match: ApiEvent
@@ -446,38 +563,36 @@ export function getMatchStatus(
     return "انتهت";
   }
 
-  if (status.state === "in") {
-    return "مباشر";
+  if (
+    status.state === "in"
+  ) {
+    return (
+      status.detail ??
+      status.description ??
+      "مباشر"
+    );
   }
 
-  if (status.state === "pre") {
-    return "لم تبدأ";
-  }
-
-  return (
-    status.description ??
-    status.detail ??
-    "غير معروف"
-  );
+  return "لم تبدأ";
 }
 
-// ======================================================
-// IS MATCH LIVE
-// ======================================================
+// =====================================================
+// LIVE CHECK
+// =====================================================
 
 export function isMatchLive(
   match: ApiEvent
-): boolean {
-  const status =
+) {
+  return (
     match.competitions?.[0]
-      ?.status?.type;
-
-  return status?.state === "in";
+      ?.status?.type?.state ===
+    "in"
+  );
 }
 
-// ======================================================
-// GET MATCH TEAMS
-// ======================================================
+// =====================================================
+// TEAMS
+// =====================================================
 
 export function getMatchTeams(
   match: ApiEvent
@@ -486,27 +601,24 @@ export function getMatchTeams(
     match.competitions?.[0]
       ?.competitors ?? [];
 
-  const home =
-    competitors.find(
-      competitor =>
-        competitor.homeAway === "home"
-    );
-
-  const away =
-    competitors.find(
-      competitor =>
-        competitor.homeAway === "away"
-    );
-
   return {
-    home,
-    away,
+    home:
+      competitors.find(
+        (team) =>
+          team.homeAway === "home"
+      ),
+
+    away:
+      competitors.find(
+        (team) =>
+          team.homeAway === "away"
+      ),
   };
 }
 
-// ======================================================
-// GET MATCH SCORE
-// ======================================================
+// =====================================================
+// SCORE
+// =====================================================
 
 export function getMatchScore(
   match: ApiEvent
@@ -514,103 +626,42 @@ export function getMatchScore(
   const {
     home,
     away,
-  } = getMatchTeams(match);
+  } =
+    getMatchTeams(match);
 
   return {
     home:
-      home?.score ??
-      "0",
+      home?.score ?? "0",
 
     away:
-      away?.score ??
-      "0",
+      away?.score ?? "0",
   };
 }
 
-// ======================================================
-// GET MATCH DETAILS
-// ======================================================
+// =====================================================
+// MATCH DETAILS
+// =====================================================
 
 export async function getMatchDetails(
   league: string,
   matchId: string
 ): Promise<ApiEvent | null> {
   try {
-    const response = await fetch(
-      `${BASE_URL}/${league}/summary?event=${matchId}`
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `API Error ${response.status}`
+    const matches =
+      await getMatches(
+        league
       );
-    }
 
-    const data =
-      await response.json();
-
-    const header =
-      data.header;
-
-    if (!header) {
-      return null;
-    }
-
-    const competition =
-      header.competitions?.[0];
-
-    const competitors =
-      competition?.competitors ?? [];
-
-    const event: ApiEvent = {
-      id:
-        header.id ??
-        matchId,
-
-      name:
-        competitors
-          .map(
-            (competitor: ApiCompetitor) =>
-              competitor.team.displayName
-          )
-          .join(" vs ") ||
-        "Football Match",
-
-      date:
-        competition?.date ??
-        header.date ??
-        new Date().toISOString(),
-
-      competitions:
-        header.competitions ??
-        [],
-
-      league: {
-        id: league,
-
-        name:
-          ALL_LEAGUES.find(
-            item => item.id === league
-          )?.name ??
-          "Football",
-
-        abbreviation: league,
-      },
-
-      season: {
-        name:
-          header.season?.displayName ??
-          header.season?.name,
-
-        year:
-          header.season?.year,
-      },
-    };
-
-    return event;
+    return (
+      matches.find(
+        (match) =>
+          match.id ===
+          matchId
+      ) ?? null
+    );
   } catch (error) {
     console.error(
-      "getMatchDetails error:",
+      "Failed to load match details:",
       error
     );
 
@@ -618,109 +669,38 @@ export async function getMatchDetails(
   }
 }
 
-// ======================================================
-// GET MATCH SCORE FROM API
-// ======================================================
+// =====================================================
+// SCORE DETAILS
+// =====================================================
 
 export async function getMatchScoreDetails(
   matchId: string,
   league: string
-): Promise<ApiEvent | null> {
+) {
   return getMatchDetails(
     league,
     matchId
   );
 }
 
-// ======================================================
+// =====================================================
 // NEWS
-// ======================================================
+// =====================================================
+
+export type NewsArticle = {
+  id: string;
+  headline: string;
+  description?: string;
+  published?: string;
+  image?: string;
+  link?: string;
+  source?: string;
+  category?: string;
+};
 
 export async function getNews(): Promise<
   NewsArticle[]
 > {
-  try {
-    const response = await fetch(
-      `${BASE_URL}/news`
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `News API Error ${response.status}`
-      );
-    }
-
-    const data =
-      await response.json();
-
-    return (
-      data.articles ?? []
-    ).map(
-      (
-        article: any,
-        index: number
-      ): NewsArticle => ({
-        id:
-          article.id ??
-          String(index),
-
-        headline:
-          article.headline ??
-          article.title ??
-          "Football News",
-
-        description:
-          article.description ??
-          article.story ??
-          "",
-
-        published:
-          article.published ??
-          article.date ??
-          "",
-
-        image:
-          article.images?.[0]?.url ??
-          "",
-
-        link:
-          article.links?.[0]?.href ??
-          "",
-
-        source:
-          article.source?.name ??
-          "ESPN",
-
-        category:
-          article.categories?.[0]
-            ?.description ??
-          "Football",
-      })
-    );
-  } catch (error) {
-    console.error(
-      "getNews error:",
-      error
-    );
-
-    return [];
-  }
-}
-
-// ======================================================
-// TRANSFERS
-// ======================================================
-
-export async function getTransfers(): Promise<
-  Transaction[]
-> {
-  /*
-   * ESPN Soccer API لا يوفر endpoint عام
-   * للانتقالات بنفس طريقة المباريات.
-   *
-   * نرجع مصفوفة فارغة بدل بيانات وهمية.
-   * الصفحة ستبقى شغالة بدون Error.
-   */
-
   return [];
 }
+
