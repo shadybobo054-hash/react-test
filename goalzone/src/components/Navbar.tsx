@@ -1,13 +1,16 @@
+
+type Page = "home" | "matches" | "live" | "news" | "transfers";
+
 type NavbarProps = {
-  navigate: (
-    page: "home" | "matches" | "live" | "news" | "transfers"
-  ) => void;
+  navigate: (page: Page) => void;
+  currentPage: Page;
 };
 
-function Navbar({ navigate }: NavbarProps) {
+function Navbar({ navigate, currentPage }: NavbarProps) {
   return (
     <header className="navbar">
       <div className="navbar-inner">
+
         <button
           type="button"
           className="navbar-logo"
@@ -15,6 +18,7 @@ function Navbar({ navigate }: NavbarProps) {
           aria-label="GoalZone Home"
         >
           <span className="logo-ball">⚽</span>
+
           <span className="logo-text">
             <strong>GOAL</strong>
             <span>ZONE</span>
@@ -22,9 +26,12 @@ function Navbar({ navigate }: NavbarProps) {
         </button>
 
         <nav className="navbar-links">
+
           <button
             type="button"
-            className="nav-link active"
+            className={`nav-link ${
+              currentPage === "home" ? "active" : ""
+            }`}
             onClick={() => navigate("home")}
           >
             <span>⌂</span>
@@ -33,7 +40,9 @@ function Navbar({ navigate }: NavbarProps) {
 
           <button
             type="button"
-            className="nav-link"
+            className={`nav-link ${
+              currentPage === "matches" ? "active" : ""
+            }`}
             onClick={() => navigate("matches")}
           >
             <span>⚽</span>
@@ -42,7 +51,9 @@ function Navbar({ navigate }: NavbarProps) {
 
           <button
             type="button"
-            className="nav-link live-link"
+            className={`nav-link live-link ${
+              currentPage === "live" ? "active" : ""
+            }`}
             onClick={() => navigate("live")}
           >
             <span className="live-dot"></span>
@@ -51,7 +62,9 @@ function Navbar({ navigate }: NavbarProps) {
 
           <button
             type="button"
-            className="nav-link"
+            className={`nav-link ${
+              currentPage === "transfers" ? "active" : ""
+            }`}
             onClick={() => navigate("transfers")}
           >
             <span>↗</span>
@@ -60,15 +73,19 @@ function Navbar({ navigate }: NavbarProps) {
 
           <button
             type="button"
-            className="nav-link"
+            className={`nav-link ${
+              currentPage === "news" ? "active" : ""
+            }`}
             onClick={() => navigate("news")}
           >
             <span>▤</span>
             News
           </button>
+
         </nav>
 
         <div className="navbar-actions">
+
           <button
             type="button"
             className="notification-btn"
@@ -82,6 +99,7 @@ function Navbar({ navigate }: NavbarProps) {
             <span className="status-light"></span>
             <span>Football Center</span>
           </div>
+
         </div>
       </div>
 
@@ -93,3 +111,4 @@ function Navbar({ navigate }: NavbarProps) {
 }
 
 export default Navbar;
+

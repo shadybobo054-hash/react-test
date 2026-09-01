@@ -1,405 +1,255 @@
 
-// src/api/footballApi.ts
+// =====================================================
+// GOALZONE — TRANSFERS API
+// Open Transfermarkt Dataset
+// No API Key — No Login
+// =====================================================
 
-const BASE =
-  "https://site.api.espn.com/apis/site/v2/sports/soccer";
-
-export type ApiTeam = {
-  id?: string;
-  displayName: string;
-  shortDisplayName?: string;
-  abbreviation?: string;
-  logo?: string;
-};
-
-export type ApiCompetitor = {
-  id?: string;
-  homeAway: "home" | "away";
-  score?: string;
-  team: ApiTeam;
-};
-
-export type ApiCompetition = {
-  id?: string;
-  date?: string;
-  competitors: ApiCompetitor[];
-  status?: {
-    type?: {
-      state?: string;
-      completed?: boolean;
-      description?: string;
-      detail?: string;
-      shortDetail?: string;
-    };
-  };
-  venue?: {
-    fullName?: string;
-  };
-};
-
-export type ApiEvent = {
-  id: string;
-  name: string;
-  date: string;
-  competitions?: ApiCompetition[];
-  league?: {
-    id?: string;
-    name?: string;
-    abbreviation?: string;
-    logo?: string;
-  };
-};
-
-export const LEAGUES = {
-  premierLeague: "eng.1",
-  laLiga: "esp.1",
-  serieA: "ita.1",
-  bundesliga: "ger.1",
-  ligue1: "fra.1",
-  championsLeague: "uefa.champions",
-  europaLeague: "uefa.europa",
-};
-
-export const ALL_LEAGUES = [
-  ["eng.1", "الدوري الإنجليزي"],
-  ["esp.1", "الدوري الإسباني"],
-  ["ita.1", "الدوري الإيطالي"],
-  ["ger.1", "الدوري الألماني"],
-  ["fra.1", "الدوري الفرنسي"],
-  ["uefa.champions", "دوري أبطال أوروبا"],
-  ["uefa.europa", "الدوري الأوروبي"],
-].map(([id, name]) => ({
-  id,
-  name,
-}));
-
-function dateFormat(date = new Date()) {
-  return date.toISOString().slice(0, 10);
-}
-
-function espnDate(date: string) {
-  return date.replaceAll("-", "");
-}
-
-function normalize(
-  event: any,
-  leagueId: string
-): ApiEvent {
-  const comp = event.competitions?.[0];
-
-  const competitors =
-    comp?.competitors ?? [];
-
-  const makeTeam = (
-    item: any
-  ): ApiCompetitor => ({
-    id: item?.id,
-    homeAway: item?.homeAway,
-    score:
-      item?.score !== undefined
-        ? String(item.score)
-        : undefined,
-    team: {
-      id: item?.team?.id,
-      displayName:
-        item?.team?.displayName ??
-        "فريق",
-      shortDisplayName:
-        item?.team?.shortDisplayName,
-      abbreviation:
-        item?.team?.abbreviation,
-      logo:
-        item?.team?.logo ??
-        item?.team?.logos?.[0]?.href ??
-        "",
-    },
-  });
-
-  const home = competitors.find(
-    (x: any) =>
-      x.homeAway === "home"
-  );
-
-  const away = competitors.find(
-    (x: any) =>
-      x.homeAway === "away"
-  );
-
-  return {
-    id: String(event.id),
-
-    name:
-      event.name ??
-      `${home?.team?.displayName} vs ${away?.team?.displayName}`,
-
-    date:
-      event.date ??
-      new Date().toISOString(),
-
-    competitions: [
-      {
-        id: comp?.id,
-        date: event.date,
-        competitors: [
-          makeTeam(home),
-          makeTeam(away),
-        ],
-        status: {
-          type: {
-            state:
-              event.status?.type
-                ?.state ?? "pre",
-            completed:
-              event.status?.type
-                ?.completed ?? false,
-            description:
-              event.status?.type
-                ?.description,
-            detail:
-              event.status?.type?.detail,
-            shortDetail:
-              event.status?.type
-                ?.shortDetail,
-          },
-        },
-        venue: {
-          fullName:
-            comp?.venue?.fullName,
-        },
-      },
-    ],
-
-    league: {
-      id: leagueId,
-      name:
-        ALL_LEAGUES.find(
-          x => x.id === leagueId
-        )?.name ?? "Football",
-      abbreviation: leagueId,
-      logo:
-        event.league?.logos?.[0]
-          ?.href ?? "",
-    },
-  };
-}
-
-export async function getMatches(
-  league: string,
-  date = dateFormat()
-): Promise<ApiEvent[]> {
-  const url =
-    `${BASE}/${league}/scoreboard?dates=${espnDate(
-      date
-    )}`;
-
-  const response =
-    await fetch(url);
-
-  if (!response.ok) {
-    throw new Error(
-      `ESPN Error ${response.status}`
-    );
-  }
-
-  const data =
-    await response.json();
-
-  return (
-    data.events ?? []
-  ).map((event: any) =>
-    normalize(event, league)
-  );
-}
-
-export async function getAllMatches(
-  date = dateFormat()
-): Promise<ApiEvent[]> {
-  const results =
-    await Promise.all(
-      ALL_LEAGUES.map(
-        league =>
-          getMatches(
-            league.id,
-            date
-          ).catch(() => [])
-      )
-    );
-
-  return results
-    .flat()
-    .sort(
-      (a, b) =>
-        new Date(a.date).getTime() -
-        new Date(b.date).getTime()
-    );
-}
-
-export function getTodayMatches() {
-  return getAllMatches();
-}
-
-export function getYesterdayMatches() {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return getAllMatches(
-    dateFormat(d)
-  );
-}
-
-export function getTomorrowMatches() {
-  const d = new Date();
-  d.setDate(d.getDate() + 1);
-  return getAllMatches(
-    dateFormat(d)
-  );
-}
-
-export function getMatchesByDate(
-  date: Date
-) {
-  return getAllMatches(
-    dateFormat(date)
-  );
-}
-
-export async function getLiveMatches() {
-  const matches =
-    await getAllMatches();
-
-  return matches.filter(
-    isMatchLive
-  );
-}
-
-export function isMatchLive(
-  match: ApiEvent
-) {
-  return (
-    match.competitions?.[0]
-      ?.status?.type?.state ===
-    "in"
-  );
-}
-
-export function getMatchStatus(
-  match: ApiEvent
-) {
-  const status =
-    match.competitions?.[0]
-      ?.status?.type;
-
-  if (!status) return "لم تبدأ";
-
-  if (status.completed)
-    return "انتهت";
-
-  if (status.state === "in")
-    return (
-      status.detail ??
-      status.description ??
-      "مباشر"
-    );
-
-  return (
-    status.description ??
-    "لم تبدأ"
-  );
-}
-
-export function getMatchTeams(
-  match: ApiEvent
-) {
-  const teams =
-    match.competitions?.[0]
-      ?.competitors ?? [];
-
-  return {
-    home: teams.find(
-      x => x.homeAway === "home"
-    ),
-    away: teams.find(
-      x => x.homeAway === "away"
-    ),
-  };
-}
-
-export function getMatchScore(
-  match: ApiEvent
-) {
-  const {
-    home,
-    away,
-  } = getMatchTeams(match);
-
-  return {
-    home: home?.score ?? "0",
-    away: away?.score ?? "0",
-  };
-}
-
-export async function getMatchDetails(
-  league: string,
-  matchId: string
-) {
-  const response =
-    await fetch(
-      `${BASE}/${league}/summary?event=${matchId}`
-    );
-
-  if (!response.ok)
-    return null;
-
-  const data =
-    await response.json();
-
-  return data.header
-    ? normalize(
-        data.header,
-        league
-      )
-    : null;
-}
-
-export async function getMatchScoreDetails(
-  matchId: string,
-  league: string
-) {
-  return getMatchDetails(
-    league,
-    matchId
-  );
-}
-
-export type NewsArticle = {
-  id: string;
-  headline: string;
-  description?: string;
-  published?: string;
-  image?: string;
-  link?: string;
-  source?: string;
-  category?: string;
-};
-
-export type Transaction = {
+export type Transfer = {
   id: string;
   player: string;
   from: string;
   to: string;
   date: string;
-  type?: string;
-  image?: string;
+  fee: number | null;
+  marketValue: number | null;
 };
 
-export async function getNews(): Promise<
-  NewsArticle[]
-> {
-  return [];
+const TRANSFERS_URL =
+  "https://pub-e682421888d945d684bcae8890b0ec20.r2.dev/data/transfers.csv.gz";
+
+function parseCSV(text: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let value = "";
+  let quotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const next = text[i + 1];
+
+    if (char === '"' && next === '"') {
+      value += '"';
+      i++;
+      continue;
+    }
+
+    if (char === '"') {
+      quotes = !quotes;
+      continue;
+    }
+
+    if (char === "," && !quotes) {
+      row.push(value);
+      value = "";
+      continue;
+    }
+
+    if ((char === "\n" || char === "\r") && !quotes) {
+      if (char === "\r" && next === "\n") i++;
+
+      row.push(value);
+      value = "";
+
+      if (row.some((x) => x.trim())) {
+        rows.push(row);
+      }
+
+      row = [];
+      continue;
+    }
+
+    value += char;
+  }
+
+  if (value || row.length) {
+    row.push(value);
+
+    if (row.some((x) => x.trim())) {
+      rows.push(row);
+    }
+  }
+
+  return rows;
 }
 
-export async function getTransfers(): Promise<
-  Transaction[]
-> {
-  return [];
+function numberOrNull(value?: string): number | null {
+  if (!value || !value.trim()) return null;
+
+  const number = Number(value);
+
+  return Number.isFinite(number) ? number : null;
+}
+
+async function readGzip(response: Response): Promise<string> {
+  if ("DecompressionStream" in window) {
+    const stream = response.body?.pipeThrough(
+      new DecompressionStream("gzip")
+    );
+
+    if (!stream) {
+      throw new Error("تعذر قراءة ملف الانتقالات");
+    }
+
+    return await new Response(stream).text();
+  }
+
+  throw new Error(
+    "المتصفح لا يدعم فك ضغط بيانات الانتقالات"
+  );
+}
+
+export async function getTransfers(
+  limit = 100
+): Promise<Transfer[]> {
+  const response = await fetch(
+    `${TRANSFERS_URL}?t=${Date.now()}`
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Transfers API Error: ${response.status}`
+    );
+  }
+
+  const csv = await readGzip(response);
+
+  const rows = parseCSV(csv);
+
+  if (rows.length < 2) {
+    return [];
+  }
+
+  const headers = rows[0].map((header) =>
+    header.trim().toLowerCase()
+  );
+
+  const getIndex = (name: string) =>
+    headers.indexOf(name.toLowerCase());
+
+  const playerIdIndex = getIndex("player_id");
+  const playerNameIndex = getIndex("player_name");
+  const dateIndex = getIndex("transfer_date");
+  const fromIndex = getIndex("from_club_name");
+  const toIndex = getIndex("to_club_name");
+  const feeIndex = getIndex("transfer_fee");
+  const marketValueIndex = getIndex(
+    "market_value_in_eur"
+  );
+
+  const transfers: Transfer[] = rows
+    .slice(1)
+    .map((row) => {
+      const playerId =
+        playerIdIndex >= 0 ? row[playerIdIndex] : "";
+
+      const player =
+        playerNameIndex >= 0
+          ? row[playerNameIndex]
+          : "Unknown Player";
+
+      const date =
+        dateIndex >= 0 ? row[dateIndex] : "";
+
+      const from =
+        fromIndex >= 0
+          ? row[fromIndex]
+          : "Unknown";
+
+      const to =
+        toIndex >= 0
+          ? row[toIndex]
+          : "Unknown";
+
+      return {
+        id: `${playerId}-${date}-${from}-${to}`,
+        player,
+        from,
+        to,
+        date,
+        fee:
+          feeIndex >= 0
+            ? numberOrNull(row[feeIndex])
+            : null,
+        marketValue:
+          marketValueIndex >= 0
+            ? numberOrNull(row[marketValueIndex])
+            : null,
+      };
+    })
+    .filter(
+      (transfer) =>
+        transfer.player &&
+        transfer.from &&
+        transfer.to
+    )
+    .sort((a, b) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+
+      return dateB - dateA;
+    });
+
+  return transfers.slice(0, limit);
+}
+
+export async function getLatestTransfers(
+  limit = 50
+): Promise<Transfer[]> {
+  return getTransfers(limit);
+}
+
+export async function searchTransfers(
+  query: string,
+  limit = 50
+): Promise<Transfer[]> {
+  const transfers = await getTransfers(500);
+
+  const search = query.trim().toLowerCase();
+
+  if (!search) {
+    return transfers.slice(0, limit);
+  }
+
+  return transfers
+    .filter(
+      (transfer) =>
+        transfer.player
+          .toLowerCase()
+          .includes(search) ||
+        transfer.from
+          .toLowerCase()
+          .includes(search) ||
+        transfer.to
+          .toLowerCase()
+          .includes(search)
+    )
+    .slice(0, limit);
+}
+
+export function formatTransferFee(
+  fee: number | null
+): string {
+  if (fee === null) {
+    return "غير معلن";
+  }
+
+  if (fee === 0) {
+    return "Free Transfer";
+  }
+
+  if (fee >= 1_000_000_000) {
+    return `${(fee / 1_000_000_000).toFixed(2)}B €`;
+  }
+
+  if (fee >= 1_000_000) {
+    return `${(fee / 1_000_000).toFixed(2)}M €`;
+  }
+
+  if (fee >= 1_000) {
+    return `${(fee / 1_000).toFixed(0)}K €`;
+  }
+
+  return `${fee.toLocaleString()} €`;
 }
 

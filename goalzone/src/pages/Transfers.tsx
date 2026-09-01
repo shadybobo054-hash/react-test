@@ -1,413 +1,192 @@
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { getTransfers, type Transfer } from "../api/newApi";
 import "./Transfers.css";
 
-type TransferType = "all" | "confirmed" | "loan" | "free";
-
-type Transfer = {
-  id: number;
-  player: string;
-  position: string;
-  from: string;
-  to: string;
-  fee: string;
-  date: string;
-  type: "confirmed" | "loan" | "free";
-  fromLogo?: string;
-  toLogo?: string;
-  playerImage?: string;
-};
-
-/*
-  صفحة Transfers جاهزة للـ API.
-  ESPN API الحالي في footballApi.ts لا يوفر
-  قائمة Transfers عامة، لذلك لا نضع بيانات وهمية.
-*/
-const transferData: Transfer[] = [];
-
 function Transfers() {
-  const [activeFilter, setActiveFilter] =
-    useState<TransferType>("all");
-
+  const [transfers, setTransfers] = useState<Transfer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
 
-  const filteredTransfers = useMemo(() => {
-    const value = search.trim().toLowerCase();
+  const loadTransfers = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      setTransfers(await getTransfers());
+    } catch {
+      setError("تعذر تحميل الانتقالات");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return transferData.filter((transfer) => {
-      const filterMatch =
-        activeFilter === "all" ||
-        transfer.type === activeFilter;
+  useEffect(() => {
+    loadTransfers();
+  }, []);
 
-      const searchMatch =
-        !value ||
-        transfer.player.toLowerCase().includes(value) ||
-        transfer.from.toLowerCase().includes(value) ||
-        transfer.to.toLowerCase().includes(value);
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase().trim();
 
-      return filterMatch && searchMatch;
+    return transfers.filter((t) => {
+      const text = `${t.player} ${t.from} ${t.to}`.toLowerCase();
+      const matchesSearch = !q || text.includes(q);
+
+      if (filter === "incoming")
+        return matchesSearch && t.to !== "Unknown";
+
+      if (filter === "outgoing")
+        return matchesSearch && t.from !== "Unknown";
+
+      return matchesSearch;
     });
-  }, [activeFilter, search]);
-
-  const totalTransfers = transferData.length;
-
-  const confirmedTransfers = transferData.filter(
-    (item) => item.type === "confirmed"
-  ).length;
-
-  const loanTransfers = transferData.filter(
-    (item) => item.type === "loan"
-  ).length;
-
-  const freeTransfers = transferData.filter(
-    (item) => item.type === "free"
-  ).length;
+  }, [transfers, search, filter]);
 
   return (
-    <main className="transfers-page" dir="rtl">
-      {/* =========================================
-          HERO
-      ========================================== */}
-      <section className="transfers-hero">
-        <div className="hero-bg-grid" />
-        <div className="hero-glow hero-glow-right" />
-        <div className="hero-glow hero-glow-left" />
+    <main className="transfers-page">
 
-        <div className="hero-content">
-          <div className="hero-tag">
-            <span className="hero-tag-dot" />
+      {/* HERO */}
+      <section className="transfers-hero">
+        <div className="transfers-hero-bg" />
+
+        <div className="transfers-hero-content">
+          <span className="transfers-label">
             GOALZONE TRANSFER CENTER
-          </div>
+          </span>
 
           <h1>
-            سوق
-            <br />
-            <span>الانتقالات</span>
+            TRANSFER
+            <strong>WINDOW</strong>
           </h1>
 
           <p>
-            تابع حركة اللاعبين بين الأندية،
-            الصفقات الجديدة، الإعارات وآخر
-            أخبار سوق الانتقالات في مكان واحد.
+            أحدث أخبار وانتقالات اللاعبين من عالم كرة القدم.
           </p>
 
-          <button
-            className="hero-button"
-            onClick={() =>
-              document
-                .getElementById("transfer-market")
-                ?.scrollIntoView({
-                  behavior: "smooth",
-                })
-            }
-          >
-            <span>استكشف السوق</span>
-            <b>←</b>
-          </button>
-        </div>
-
-        <div className="hero-art">
-          <div className="orbit orbit-1" />
-          <div className="orbit orbit-2" />
-          <div className="orbit orbit-3" />
-
-          <div className="football">
-            ⚽
-          </div>
-
-          <div className="floating-transfer-card card-a">
-            <span className="floating-icon">↗</span>
-
+          <div className="transfers-hero-stats">
             <div>
-              <strong>TRANSFER</strong>
-              <small>MARKET</small>
+              <b>LIVE</b>
+              <span>UPDATES</span>
             </div>
-          </div>
-
-          <div className="floating-transfer-card card-b">
-            <span className="floating-icon">✓</span>
-
             <div>
-              <strong>GOALZONE</strong>
-              <small>FOOTBALL CENTER</small>
+              <b>WORLD</b>
+              <span>TRANSFERS</span>
+            </div>
+            <div>
+              <b>24/7</b>
+              <span>FOOTBALL</span>
             </div>
           </div>
         </div>
+
+        <div className="transfers-ball">⚽</div>
       </section>
 
-      {/* =========================================
-          MARKET CONTENT
-      ========================================== */}
-      <section
-        className="transfer-market"
-        id="transfer-market"
-      >
-        {/* STATS */}
-        <div className="transfer-stats">
-          <div className="stat-box">
-            <div className="stat-symbol">↔</div>
+      {/* CONTENT */}
+      <section className="transfers-content">
 
-            <div>
-              <span>إجمالي الانتقالات</span>
-              <strong>{totalTransfers}</strong>
-            </div>
+        <div className="transfers-heading">
+          <div>
+            <span>LATEST MOVES</span>
+            <h2>آخر الانتقالات</h2>
           </div>
 
-          <div className="stat-box">
-            <div className="stat-symbol">✓</div>
+          <strong>{filtered.length} انتقال</strong>
+        </div>
 
-            <div>
-              <span>صفقات مؤكدة</span>
-              <strong>{confirmedTransfers}</strong>
-            </div>
-          </div>
+        <div className="transfers-tools">
+          <input
+            type="text"
+            placeholder="ابحث عن لاعب أو نادي..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
 
-          <div className="stat-box">
-            <div className="stat-symbol">↪</div>
+          <div className="transfer-filters">
+            <button
+              className={filter === "all" ? "active" : ""}
+              onClick={() => setFilter("all")}
+            >
+              الكل
+            </button>
 
-            <div>
-              <span>إعارات</span>
-              <strong>{loanTransfers}</strong>
-            </div>
-          </div>
+            <button
+              className={filter === "incoming" ? "active" : ""}
+              onClick={() => setFilter("incoming")}
+            >
+              انتقالات
+            </button>
 
-          <div className="stat-box">
-            <div className="stat-symbol">★</div>
-
-            <div>
-              <span>انتقالات مجانية</span>
-              <strong>{freeTransfers}</strong>
-            </div>
+            <button
+              className={filter === "outgoing" ? "active" : ""}
+              onClick={() => setFilter("outgoing")}
+            >
+              مغادرة
+            </button>
           </div>
         </div>
 
-        {/* SECTION HEADER */}
-        <div className="market-header">
-          <div className="market-title">
-            <span>TRANSFER MARKET</span>
-
-            <h2>أحدث الانتقالات</h2>
-
-            <p>
-              أحدث حركة للاعبين بين الأندية
-            </p>
-          </div>
-
-          <div className="transfer-search">
-            <span>⌕</span>
-
-            <input
-              type="text"
-              placeholder="ابحث عن لاعب أو نادي..."
-              value={search}
-              onChange={(event) =>
-                setSearch(event.target.value)
-              }
-            />
-          </div>
-        </div>
-
-        {/* FILTERS */}
-        <div className="transfer-filters">
-          <button
-            className={
-              activeFilter === "all"
-                ? "active"
-                : ""
-            }
-            onClick={() =>
-              setActiveFilter("all")
-            }
-          >
-            الكل
-          </button>
-
-          <button
-            className={
-              activeFilter === "confirmed"
-                ? "active"
-                : ""
-            }
-            onClick={() =>
-              setActiveFilter("confirmed")
-            }
-          >
-            صفقات مؤكدة
-          </button>
-
-          <button
-            className={
-              activeFilter === "loan"
-                ? "active"
-                : ""
-            }
-            onClick={() =>
-              setActiveFilter("loan")
-            }
-          >
-            إعارات
-          </button>
-
-          <button
-            className={
-              activeFilter === "free"
-                ? "active"
-                : ""
-            }
-            onClick={() =>
-              setActiveFilter("free")
-            }
-          >
-            انتقال مجاني
-          </button>
-        </div>
-
-        {/* =========================================
-            TRANSFER LIST
-        ========================================== */}
-        {filteredTransfers.length > 0 ? (
-          <div className="transfer-grid">
-            {filteredTransfers.map((transfer) => (
-              <article
-                className="transfer-card"
-                key={transfer.id}
-              >
-                <div className="transfer-card-head">
-                  <span
-                    className={`transfer-type ${transfer.type}`}
-                  >
-                    {transfer.type === "loan"
-                      ? "إعارة"
-                      : transfer.type === "free"
-                      ? "مجاني"
-                      : "مؤكد"}
-                  </span>
-
-                  <span className="transfer-date">
-                    {transfer.date}
-                  </span>
-                </div>
-
-                <div className="player-section">
-                  {transfer.playerImage ? (
-                    <img
-                      className="player-image"
-                      src={transfer.playerImage}
-                      alt={transfer.player}
-                    />
-                  ) : (
-                    <div className="player-placeholder">
-                      ⚽
-                    </div>
-                  )}
-
-                  <div>
-                    <h3>{transfer.player}</h3>
-
-                    <p>
-                      {transfer.position}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="clubs">
-                  <div className="club">
-                    {transfer.fromLogo ? (
-                      <img
-                        src={transfer.fromLogo}
-                        alt=""
-                      />
-                    ) : (
-                      <div className="club-placeholder">
-                        🛡
-                      </div>
-                    )}
-
-                    <div>
-                      <small>من</small>
-                      <strong>
-                        {transfer.from}
-                      </strong>
-                    </div>
-                  </div>
-
-                  <div className="transfer-arrow">
-                    <span />
-                    →
-                  </div>
-
-                  <div className="club">
-                    {transfer.toLogo ? (
-                      <img
-                        src={transfer.toLogo}
-                        alt=""
-                      />
-                    ) : (
-                      <div className="club-placeholder">
-                        🛡
-                      </div>
-                    )}
-
-                    <div>
-                      <small>إلى</small>
-                      <strong>
-                        {transfer.to}
-                      </strong>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="transfer-footer">
-                  <span>قيمة الصفقة</span>
-
-                  <strong>
-                    {transfer.fee}
-                  </strong>
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          /* =========================================
-             EMPTY STATE
-          ========================================== */
-          <div className="empty-state">
-            <div className="empty-decoration" />
-
-            <div className="empty-icon">
-              <span>↔</span>
-            </div>
-
-            <span className="empty-kicker">
-              TRANSFER CENTER
-            </span>
-
-            <h3>
-              لا توجد انتقالات متاحة حاليًا
-            </h3>
-
-            <p>
-              مصدر البيانات الحالي في GoalZone
-              لا يوفر قائمة انتقالات اللاعبين،
-              لذلك لن نعرض صفقات غير حقيقية.
-            </p>
-
-            <div className="empty-note">
-              <span>i</span>
-
-              <p>
-                صفحة الانتقالات جاهزة لاستقبال
-                البيانات الحقيقية بمجرد ربط
-                مصدر انتقالات مناسب.
-              </p>
-            </div>
+        {loading && (
+          <div className="transfers-state">
+            <div className="transfer-loader" />
+            <p>جاري تحميل الانتقالات...</p>
           </div>
         )}
 
-        <div className="source-note">
-          <span>⚡</span>
-          GoalZone Football Center
-        </div>
+        {!loading && error && (
+          <div className="transfers-state">
+            <div className="empty-transfer">!</div>
+            <h3>{error}</h3>
+            <button onClick={loadTransfers}>
+              إعادة المحاولة
+            </button>
+          </div>
+        )}
+
+        {!loading && !error && filtered.length === 0 && (
+          <div className="transfers-state">
+            <div className="empty-transfer">↔</div>
+            <h3>لا توجد انتقالات</h3>
+            <p>جرب البحث باسم لاعب أو نادي آخر.</p>
+          </div>
+        )}
+
+        {!loading && !error && filtered.length > 0 && (
+          <div className="transfers-grid">
+            {filtered.map((transfer) => (
+              <article className="transfer-card" key={transfer.id}>
+
+                <div className="transfer-card-top">
+                  <span>TRANSFER</span>
+                  <small>{transfer.date}</small>
+                </div>
+
+                <h3>{transfer.player}</h3>
+
+                <div className="transfer-route">
+                  <div className="club">
+                    <small>FROM</small>
+                    <b>{transfer.from || "Unknown"}</b>
+                  </div>
+
+                  <div className="transfer-arrow">→</div>
+
+                  <div className="club">
+                    <small>TO</small>
+                    <b>{transfer.to || "Unknown"}</b>
+                  </div>
+                </div>
+
+                <div className="transfer-line" />
+                <span className="transfer-type">
+                  OFFICIAL TRANSFER
+                </span>
+
+              </article>
+            ))}
+          </div>
+        )}
       </section>
     </main>
   );

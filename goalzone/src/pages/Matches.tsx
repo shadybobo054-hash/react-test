@@ -1,21 +1,18 @@
+
 import { useEffect, useState } from "react";
 import {
-  getTodayMatches,
-  getYesterdayMatches,
-  getTomorrowMatches,
+  getMatches,
   getMatchStatus,
-  getMatchScore,
-  ALL_LEAGUES,
   type ApiEvent,
 } from "../api/footballApi";
 import "./Matches.css";
 
-type Day = "yesterday" | "today" | "tomorrow";
+type MatchesProps = {
+  onDetails: (match: ApiEvent) => void;
+};
 
-function Matches() {
+function Matches({ onDetails }: MatchesProps) {
   const [matches, setMatches] = useState<ApiEvent[]>([]);
-  const [day, setDay] = useState<Day>("today");
-  const [league, setLeague] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -23,16 +20,12 @@ function Matches() {
     try {
       setLoading(true);
       setError("");
-      const data =
-        day === "today"
-          ? await getTodayMatches()
-          : day === "yesterday"
-          ? await getYesterdayMatches()
-          : await getTomorrowMatches();
+
+      const data = await getMatches("eng.1");
       setMatches(data);
     } catch (err) {
-      console.error(err);
-      setError("تعذر تحميل المباريات");
+      console.error("Matches Error:", err);
+      setError("فشل تحميل المباريات.");
     } finally {
       setLoading(false);
     }
@@ -40,186 +33,208 @@ function Matches() {
 
   useEffect(() => {
     loadMatches();
-  }, [day]);
-
-  const filtered =
-    league === "all"
-      ? matches
-      : matches.filter((m) => m.league?.id === league);
-
-  const time = (date: string) =>
-    new Date(date).toLocaleTimeString("ar-EG", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-
-  const dayTitle =
-    day === "today"
-      ? "مباريات اليوم"
-      : day === "yesterday"
-      ? "مباريات الأمس"
-      : "مباريات الغد";
+  }, []);
 
   return (
     <main className="matches-page">
       <section className="matches-hero">
-        <div className="matches-hero-glow" />
         <div className="matches-hero-content">
-          <span>GOALZONE MATCH CENTER</span>
+          <span className="matches-label">
+            <i></i>
+            FOOTBALL CENTER
+          </span>
+
           <h1>
-            FOOTBALL <b>MATCHES</b>
+            TODAY'S
+            <strong>MATCHES</strong>
           </h1>
-          <p>تابع جميع المباريات والنتائج من مكان واحد.</p>
+
+          <p>
+            تابع أهم مباريات كرة القدم ومواعيدها ونتائجها
+            من مكان واحد.
+          </p>
+
+          <div className="matches-stats">
+            <div className="matches-stat">
+              <span className="stat-icon">⚽</span>
+              <div>
+                <strong>{matches.length}</strong>
+                <small>TODAY MATCHES</small>
+              </div>
+            </div>
+
+            <div className="matches-stat">
+              <span className="stat-icon">🏆</span>
+              <div>
+                <strong>PL</strong>
+                <small>PREMIER LEAGUE</small>
+              </div>
+            </div>
+
+            <div className="matches-stat">
+              <span className="stat-icon">↻</span>
+              <div>
+                <strong>LIVE</strong>
+                <small>ESPN DATA</small>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="matches-hero-ball">⚽</div>
+
+        <div className="transfers-ball">⚽</div>
       </section>
 
       <section className="matches-content">
-        <div className="matches-toolbar">
-          <div className="day-tabs">
-            {(["yesterday", "today", "tomorrow"] as Day[]).map((d) => (
-              <button
-                key={d}
-                className={day === d ? "active" : ""}
-                onClick={() => setDay(d)}
-              >
-                {d === "yesterday"
-                  ? "أمس"
-                  : d === "today"
-                  ? "اليوم"
-                  : "غدًا"}
-              </button>
-            ))}
-          </div>
-
-          <select value={league} onChange={(e) => setLeague(e.target.value)}>
-            <option value="all">جميع البطولات</option>
-            {ALL_LEAGUES.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
         <div className="matches-heading">
           <div>
-            <span>FIXTURES</span>
-            <h2>{dayTitle}</h2>
+            <span>PREMIER LEAGUE</span>
+            <h2>
+              مباريات <strong>اليوم</strong>
+            </h2>
           </div>
-          <strong>{filtered.length} مباراة</strong>
+
+          <div className="matches-count">
+            {matches.length} MATCHES
+          </div>
         </div>
 
         {loading && (
           <div className="matches-state">
-            <div className="loader" />
-            <p>جاري تحميل المباريات...</p>
+            <div className="matches-loader"></div>
+            <h3>جاري تحميل المباريات</h3>
+            <p>نحصل على أحدث البيانات من ESPN...</p>
           </div>
         )}
 
         {!loading && error && (
-          <div className="matches-state error">
-            <h3>{error}</h3>
-            <button onClick={loadMatches}>إعادة المحاولة</button>
-          </div>
-        )}
-
-        {!loading && !error && filtered.length === 0 && (
           <div className="matches-state">
-            <div className="empty-ball">⚽</div>
-            <h3>لا توجد مباريات</h3>
-            <p>لم يتم العثور على مباريات في هذا اليوم.</p>
+            <div className="state-icon">⚠</div>
+            <h3>حدث خطأ</h3>
+            <p>{error}</p>
+
+            <button onClick={loadMatches}>
+              إعادة المحاولة
+            </button>
           </div>
         )}
 
-        {!loading && !error && filtered.length > 0 && (
+        {!loading && !error && matches.length === 0 && (
+          <div className="matches-state">
+            <div className="state-icon">⚽</div>
+            <h3>لا توجد مباريات اليوم</h3>
+            <p>لم يتم العثور على مباريات في الدوري الإنجليزي اليوم.</p>
+          </div>
+        )}
+
+        {!loading && !error && matches.length > 0 && (
           <div className="matches-grid">
-            {filtered.map((match) => {
-              const competitors =
-                match.competitions?.[0]?.competitors ?? [];
+            {matches.map((match) => {
+              const competition = match.competitions?.[0];
+              const teams = competition?.competitors ?? [];
 
-              const home = competitors.find(
-                (t) => t.homeAway === "home"
-              );
-              const away = competitors.find(
-                (t) => t.homeAway === "away"
+              const home = teams.find(
+                (team) => team.homeAway === "home"
               );
 
-              const score = getMatchScore(match);
+              const away = teams.find(
+                (team) => team.homeAway === "away"
+              );
+
               const status = getMatchStatus(match);
-              const live =
-                match.competitions?.[0]?.status?.type?.state === "in";
-
-              const leagueName =
-                ALL_LEAGUES.find(
-                  (l) => l.id === match.league?.id
-                )?.name || "Football";
 
               return (
                 <article className="match-card" key={match.id}>
                   <div className="match-card-top">
-                    <span>{leagueName}</span>
-                    {live ? (
-                      <b className="live-status">
-                        <i /> LIVE
-                      </b>
-                    ) : (
-                      <small>{status}</small>
-                    )}
+                    <span className="league-name">
+                      {match.league?.name || "Premier League"}
+                    </span>
+
+                    <span
+                      className={`match-status ${
+                        competition?.status?.type?.state === "in"
+                          ? "is-live"
+                          : ""
+                      }`}
+                    >
+                      {competition?.status?.type?.state === "in" && (
+                        <i></i>
+                      )}
+
+                      {status}
+                    </span>
                   </div>
 
                   <div className="match-date">
-                    {time(match.date)}
+                    {new Date(match.date).toLocaleDateString(
+                      "ar-EG",
+                      {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long",
+                      }
+                    )}
                   </div>
 
-                  <div className="teams">
-                    <div className="team">
-                      <div className="team-logo">
+                  <div className="match-teams">
+                    <div className="match-team">
+                      <div className="match-logo">
                         {home?.team.logo ? (
-                          <img src={home.team.logo} alt="" />
+                          <img
+                            src={home.team.logo}
+                            alt={home.team.displayName}
+                          />
                         ) : (
-                          "⚽"
+                          <span>⚽</span>
                         )}
                       </div>
+
                       <strong>
-                        {home?.team.shortDisplayName || "Home"}
+                        {home?.team.displayName || "Home Team"}
                       </strong>
+
                       <small>HOME</small>
                     </div>
 
-                    <div className="score">
-                      {live || status === "انتهت" ? (
-                        <>
-                          <strong>
-                            {score.home} : {score.away}
-                          </strong>
-                          <span>{live ? "LIVE" : "FT"}</span>
-                        </>
-                      ) : (
-                        <>
-                          <strong>VS</strong>
-                          <span>{time(match.date)}</span>
-                        </>
-                      )}
+                    <div className="match-score">
+                      <b>{home?.score ?? "0"}</b>
+
+                      <em>:</em>
+
+                      <b>{away?.score ?? "0"}</b>
+
+                      <small>
+                        {competition?.status?.type?.shortDetail ||
+                          "MATCH"}
+                      </small>
                     </div>
 
-                    <div className="team">
-                      <div className="team-logo">
+                    <div className="match-team">
+                      <div className="match-logo">
                         {away?.team.logo ? (
-                          <img src={away.team.logo} alt="" />
+                          <img
+                            src={away.team.logo}
+                            alt={away.team.displayName}
+                          />
                         ) : (
-                          "⚽"
+                          <span>⚽</span>
                         )}
                       </div>
+
                       <strong>
-                        {away?.team.shortDisplayName || "Away"}
+                        {away?.team.displayName || "Away Team"}
                       </strong>
+
                       <small>AWAY</small>
                     </div>
                   </div>
 
-                  <button className="details-btn">
-                    Details <span>→</span>
+                  <button
+                    type="button"
+                    className="match-details-btn"
+                    onClick={() => onDetails(match)}
+                  >
+                    <span>تفاصيل المباراة</span>
+                    <b>→</b>
                   </button>
                 </article>
               );
@@ -232,3 +247,4 @@ function Matches() {
 }
 
 export default Matches;
+

@@ -1,311 +1,225 @@
 
-// src/pages/News.tsx
-
 import { useEffect, useState } from "react";
-
-import {
-  getNews,
-  type NewsArticle,
-} from "../api/footballApi";
-
 import "./News.css";
 
+type NewsArticle = {
+  id: string;
+  headline: string;
+  description?: string;
+  published?: string;
+  image?: string;
+  link?: string;
+};
+
+const LEAGUES = [
+  { id: "eng.1", name: "Premier League" },
+  { id: "esp.1", name: "La Liga" },
+  { id: "ita.1", name: "Serie A" },
+  { id: "ger.1", name: "Bundesliga" },
+  { id: "fra.1", name: "Ligue 1" },
+];
+
+const BASE_URL =
+  "https://site.api.espn.com/apis/site/v2/sports/soccer";
+
 function News() {
-  const [news, setNews] =
-    useState<NewsArticle[]>([]);
+  const [news, setNews] = useState<NewsArticle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const [loading, setLoading] =
-    useState(true);
+  const loadNews = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-  const [error, setError] =
-    useState("");
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadNews() {
-      try {
-        setLoading(true);
-        setError("");
-
-        const data = await getNews();
-
-        if (!cancelled) {
-          setNews(data);
-        }
-      } catch (err) {
-        console.error(
-          "News Error:",
-          err
-        );
-
-        if (!cancelled) {
-          setError(
-            "فشل تحميل الأخبار."
+      const responses = await Promise.all(
+        LEAGUES.map(async (league) => {
+          const response = await fetch(
+            `${BASE_URL}/${league.id}/news`
           );
 
-          setNews([]);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
+          if (!response.ok) return [];
+
+          const data = await response.json();
+
+          return (data.articles || []).map((article: any) => ({
+            id: article.id,
+            headline: article.headline || "Football News",
+            description: article.description || "",
+            published: article.published,
+            image:
+              article.images?.[0]?.url ||
+              article.images?.[1]?.url,
+            link: article.links?.web?.href,
+          }));
+        })
+      );
+
+      const allNews = responses.flat();
+
+      const uniqueNews = allNews.filter(
+        (article, index, array) =>
+          index ===
+          array.findIndex((item) => item.id === article.id)
+      );
+
+      setNews(uniqueNews.slice(0, 30));
+    } catch (err) {
+      console.error("News Error:", err);
+      setError("تعذر تحميل الأخبار");
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     loadNews();
-
-    return () => {
-      cancelled = true;
-    };
   }, []);
+
+  const formatDate = (date?: string) => {
+    if (!date) return "";
+
+    return new Date(date).toLocaleDateString("ar-EG", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
 
   return (
     <main className="news-page">
 
-      {/* =========================
-          HEADER
-      ========================= */}
+      {/* HERO */}
+      <section className="news-hero">
+        <div className="news-hero-bg" />
 
-      <section className="page-header">
+        <div className="news-hero-content">
+          <span className="news-label">
+            GOALZONE NEWS CENTER
+          </span>
 
-        <span>
-          FOOTBALL NEWS
-        </span>
+          <h1>
+            FOOTBALL
+            <strong>NEWS</strong>
+          </h1>
 
-        <h1>
-          LATEST{" "}
-          <strong>NEWS</strong>
-        </h1>
+          <p>
+            أحدث أخبار كرة القدم من أكبر البطولات العالمية.
+          </p>
 
-        <p>
-          أحدث أخبار كرة القدم العالمية
-          وآخر المستجدات.
-        </p>
+          <div className="news-hero-stats">
+            <div>
+              <b>24/7</b>
+              <span>UPDATES</span>
+            </div>
 
+            <div>
+              <b>WORLD</b>
+              <span>FOOTBALL</span>
+            </div>
+
+            <div>
+              <b>LIVE</b>
+              <span>NEWS</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="transfers-ball">⚽</div>
       </section>
 
-      {/* =========================
-          CONTENT
-      ========================= */}
+      {/* CONTENT */}
+      <section className="news-content">
 
-      <section className="page-content">
+        <div className="news-heading">
+          <div>
+            <span>LATEST STORIES</span>
+            <h2>آخر الأخبار</h2>
+          </div>
 
-        {/* LOADING */}
+          <strong>{news.length} خبر</strong>
+        </div>
 
         {loading && (
-          <div className="api-message">
-
+          <div className="news-state">
             <div className="news-loader" />
-
-            <p>
-              جاري تحميل الأخبار...
-            </p>
-
+            <p>جاري تحميل الأخبار...</p>
           </div>
         )}
-
-        {/* ERROR */}
 
         {!loading && error && (
-          <div className="api-message error">
+          <div className="news-state">
+            <div className="news-error">!</div>
+            <h3>{error}</h3>
 
-            <div className="news-error-icon">
-              ⚠️
-            </div>
-
-            <h3>
-              حدث خطأ
-            </h3>
-
-            <p>
-              {error}
-            </p>
-
-            <button
-              type="button"
-              onClick={() => {
-                window.location.reload();
-              }}
-            >
+            <button onClick={loadNews}>
               إعادة المحاولة
             </button>
-
           </div>
         )}
 
-        {/* EMPTY */}
+        {!loading && !error && news.length === 0 && (
+          <div className="news-state">
+            <div className="news-empty">📰</div>
+            <h3>لا توجد أخبار</h3>
+            <p>لم يتم العثور على أخبار حالياً.</p>
+          </div>
+        )}
 
-        {!loading &&
-          !error &&
-          news.length === 0 && (
-            <div className="empty-state">
+        {!loading && !error && news.length > 0 && (
+          <div className="news-grid">
 
-              <div className="news-empty-icon">
-                📰
-              </div>
+            {news.map((article) => (
+              <article className="news-card" key={article.id}>
 
-              <h3>
-                لا توجد أخبار
-              </h3>
-
-              <p>
-                لا توجد أخبار متاحة حاليًا.
-              </p>
-
-            </div>
-          )}
-
-        {/* NEWS GRID */}
-
-        {!loading &&
-          !error &&
-          news.length > 0 && (
-            <div className="news-grid">
-
-              {news.map(
-                (article, index) => (
-                  <article
-                    className="news-card"
-                    key={
-                      article.id ||
-                      `news-${index}`
-                    }
-                  >
-
-                    {/* IMAGE */}
-
-                    {article.image ? (
-                      <div className="news-image">
-
-                        <img
-                          src={article.image}
-                          alt={
-                            article.headline ||
-                            "Football News"
-                          }
-                          loading="lazy"
-                        />
-
-                        <div className="news-image-overlay" />
-
-                        <span className="news-category">
-                          {article.category ||
-                            "Football"}
-                        </span>
-
-                      </div>
-                    ) : (
-                      <div className="news-image news-placeholder">
-
-                        <span>
-                          ⚽
-                        </span>
-
-                        <small>
-                          GOALZONE
-                        </small>
-
-                      </div>
-                    )}
-
-                    {/* BODY */}
-
-                    <div className="news-card-body">
-
-                      <div className="news-meta">
-
-                        <span>
-                          {article.source ||
-                            "ESPN"}
-                        </span>
-
-                        {article.published && (
-                          <span>
-                            {formatNewsDate(
-                              article.published
-                            )}
-                          </span>
-                        )}
-
-                      </div>
-
-                      <h2>
-                        {article.headline ||
-                          "Football News"}
-                      </h2>
-
-                      {article.description && (
-                        <p>
-                          {article.description}
-                        </p>
-                      )}
-
-                      {/* READ MORE */}
-
-                      {article.link ? (
-                        <a
-                          href={article.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="news-read-more"
-                        >
-                          اقرأ الخبر
-                          <span>
-                            →
-                          </span>
-                        </a>
-                      ) : (
-                        <span className="news-read-more disabled">
-                          الخبر غير متاح
-                        </span>
-                      )}
-
+                <div className="news-image">
+                  {article.image ? (
+                    <img
+                      src={article.image}
+                      alt={article.headline}
+                    />
+                  ) : (
+                    <div className="news-image-placeholder">
+                      ⚽
                     </div>
+                  )}
 
-                  </article>
-                )
-              )}
+                  <span>FOOTBALL</span>
+                </div>
 
-            </div>
-          )}
+                <div className="news-card-body">
 
+                  <small>
+                    {formatDate(article.published)}
+                  </small>
+
+                  <h3>{article.headline}</h3>
+
+                  {article.description && (
+                    <p>{article.description}</p>
+                  )}
+
+                  {article.link && (
+                    <a
+                      href={article.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      اقرأ الخبر
+                      <span>→</span>
+                    </a>
+                  )}
+
+                </div>
+              </article>
+            ))}
+
+          </div>
+        )}
       </section>
-
     </main>
   );
 }
 
-/* ======================================================
-   DATE FORMAT
-====================================================== */
-
-function formatNewsDate(
-  dateString: string
-): string {
-  try {
-    const date =
-      new Date(dateString);
-
-    if (
-      Number.isNaN(
-        date.getTime()
-      )
-    ) {
-      return dateString;
-    }
-
-    return date.toLocaleDateString(
-      "ar-EG",
-      {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      }
-    );
-  } catch {
-    return dateString;
-  }
-}
-
 export default News;
+
