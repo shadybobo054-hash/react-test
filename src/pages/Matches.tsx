@@ -1,250 +1,338 @@
-
-import { useEffect, useState } from "react";
-import {
-  getMatches,
-  getMatchStatus,
-  type ApiEvent,
-} from "../api/footballApi";
+import { useEffect, useMemo, useState } from "react";
+import { getMatches, LEAGUES, type ApiEvent } from "../api/footballApi";
 import "./Matches.css";
 
-type MatchesProps = {
-  onDetails: (match: ApiEvent) => void;
+type Props = { onDetails: (match: ApiEvent) => void };
+
+const LEAGUES_LIST = [
+  LEAGUES.premierLeague,
+  LEAGUES.laLiga,
+  LEAGUES.bundesliga,
+  LEAGUES.serieA,
+  LEAGUES.ligue1,
+  LEAGUES.championsLeague,
+];
+
+const LEAGUE_NAMES: Record<string, string> = {
+  [LEAGUES.premierLeague]: "Premier League",
+  [LEAGUES.laLiga]: "La Liga",
+  [LEAGUES.bundesliga]: "Bundesliga",
+  [LEAGUES.serieA]: "Serie A",
+  [LEAGUES.ligue1]: "Ligue 1",
+  [LEAGUES.championsLeague]: "Champions League",
 };
 
-function Matches({ onDetails }: MatchesProps) {
+const dateKey = (date: Date) =>
+  `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
+
+const displayDate = (date: Date) =>
+  new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+
+const getMatchDate = (m: ApiEvent) =>
+  dateKey(new Date(m.date));
+
+const getStatus = (m: ApiEvent) => {
+  const s = m.competitions?.[0]?.status?.type;
+  if (s?.state === "in") return "LIVE";
+  if (s?.state === "post") return "FT";
+  return s?.shortDetail || s?.detail || "Upcoming";
+};
+
+const getTeam = (m: ApiEvent, side: "home" | "away") => {
+  const t = m.competitions?.[0]?.competitors.find(
+    x => x.homeAway === side
+  );
+
+  return {
+    name: t?.team?.displayName || "Unknown",
+    logo: t?.team?.logo || "",
+    score: t?.score ?? null,
+  };
+};
+
+const getTime = (m: ApiEvent) =>
+  new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  }).format(new Date(m.date));
+
+export default function Matches({ onDetails }: Props) {
+  const today = useMemo(() => new Date(), []);
+  const [selectedDate, setSelectedDate] = useState(today);
   const [matches, setMatches] = useState<ApiEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+
+  const days = useMemo(() =>
+    Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(selectedDate);
+      d.setDate(d.getDate() + i - 3);
+      return d;
+    }), [selectedDate]);
 
   const loadMatches = async () => {
-    try {
-      setLoading(true);
-      setError("");
+    setLoading(true);
 
-      const data = await getMatches("eng.1");
-      setMatches(data);
-    } catch (err) {
-      console.error("Matches Error:", err);
-      setError("فشل تحميل المباريات.");
-    } finally {
-      setLoading(false);
-    }
+    const result = await Promise.all(
+      LEAGUES_LIST.map(league =>
+        getMatches(league, dateKey(selectedDate)).catch(() => [])
+      )
+    );
+
+    setMatches(
+      Array.from(
+        new Map(
+          result.flat()
+            .filter(m => getMatchDate(m) === dateKey(selectedDate))
+            .map(m => [m.id, m])
+        ).values()
+      )
+    );
+
+    setLoading(false);
   };
 
   useEffect(() => {
     loadMatches();
-  }, []);
+  }, [selectedDate]);
+
+  const changeDate = (amount: number) => {
+    setSelectedDate(current => {
+      const next = new Date(current);
+      next.setDate(next.getDate() + amount);
+      return next;
+    });
+  };
+
+  const grouped = useMemo(() => {
+    const groups: Record<string, ApiEvent[]> = {};
+
+    matches.forEach(match => {
+      const id = match.league?.id || "other";
+      (groups[id] ||= []).push(match);
+    });
+
+    return Object.entries(groups);
+  }, [matches]);
 
   return (
     <main className="matches-page">
+
       <section className="matches-hero">
-        <div className="matches-hero-content">
-          <span className="matches-label">
-            <i></i>
-            FOOTBALL CENTER
-          </span>
+        <div className="hero-orb hero-orb-one" />
+        <div className="hero-orb hero-orb-two" />
 
-          <h1>
-            TODAY'S
-            <strong>MATCHES</strong>
-          </h1>
-
-          <p>
-            تابع أهم مباريات كرة القدم ومواعيدها ونتائجها
-            من مكان واحد.
-          </p>
-
-          <div className="matches-stats">
-            <div className="matches-stat">
-              <span className="stat-icon">⚽</span>
-              <div>
-                <strong>{matches.length}</strong>
-                <small>TODAY MATCHES</small>
-              </div>
+        <div className="matches-container">
+          <div className="matches-hero-content">
+            <div className="matches-eyebrow">
+              <span /> FOOTBALL FIXTURES
             </div>
 
-            <div className="matches-stat">
-              <span className="stat-icon">🏆</span>
-              <div>
-                <strong>PL</strong>
-                <small>PREMIER LEAGUE</small>
-              </div>
-            </div>
+            <h1>Match<strong>Center</strong></h1>
 
-            <div className="matches-stat">
-              <span className="stat-icon">↻</span>
-              <div>
-                <strong>LIVE</strong>
-                <small>ESPN DATA</small>
-              </div>
+            <p>
+              Browse football matches by day and follow every
+              fixture from your favorite leagues.
+            </p>
+
+            <div className="selected-date-info">
+              <span>SELECTED DATE</span>
+              <strong>{displayDate(selectedDate)}</strong>
             </div>
           </div>
-        </div>
 
-        <div className="transfers-ball">⚽</div>
+          <div className="hero-ball">⚽</div>
+        </div>
       </section>
 
-      <section className="matches-content">
-        <div className="matches-heading">
+      <section className="matches-container calendar-section">
+        <div className="calendar-top">
           <div>
-            <span>PREMIER LEAGUE</span>
-            <h2>
-              مباريات <strong>اليوم</strong>
-            </h2>
+            <span className="section-label">MATCH CALENDAR</span>
+            <h2>Choose your <strong>matchday</strong></h2>
           </div>
 
-          <div className="matches-count">
-            {matches.length} MATCHES
-          </div>
+          <button
+            className="today-button"
+            onClick={() => setSelectedDate(new Date(today))}
+          >
+            TODAY
+          </button>
         </div>
 
-        {loading && (
-          <div className="matches-state">
-            <div className="matches-loader"></div>
-            <h3>جاري تحميل المباريات</h3>
-            <p>نحصل على أحدث البيانات من ESPN...</p>
-          </div>
-        )}
+        <div className="calendar">
+          <button
+            className="calendar-arrow"
+            onClick={() => changeDate(-1)}
+          >
+            ‹
+          </button>
 
-        {!loading && error && (
-          <div className="matches-state">
-            <div className="state-icon">⚠</div>
-            <h3>حدث خطأ</h3>
-            <p>{error}</p>
-
-            <button onClick={loadMatches}>
-              إعادة المحاولة
-            </button>
-          </div>
-        )}
-
-        {!loading && !error && matches.length === 0 && (
-          <div className="matches-state">
-            <div className="state-icon">⚽</div>
-            <h3>لا توجد مباريات اليوم</h3>
-            <p>لم يتم العثور على مباريات في الدوري الإنجليزي اليوم.</p>
-          </div>
-        )}
-
-        {!loading && !error && matches.length > 0 && (
-          <div className="matches-grid">
-            {matches.map((match) => {
-              const competition = match.competitions?.[0];
-              const teams = competition?.competitors ?? [];
-
-              const home = teams.find(
-                (team) => team.homeAway === "home"
-              );
-
-              const away = teams.find(
-                (team) => team.homeAway === "away"
-              );
-
-              const status = getMatchStatus(match);
+          <div className="days">
+            {days.map(day => {
+              const active =
+                dateKey(day) === dateKey(selectedDate);
 
               return (
-                <article className="match-card" key={match.id}>
-                  <div className="match-card-top">
-                    <span className="league-name">
-                      {match.league?.name || "Premier League"}
-                    </span>
+                <button
+                  key={dateKey(day)}
+                  className={`day-card ${active ? "active" : ""}`}
+                  onClick={() => setSelectedDate(new Date(day))}
+                >
+                  {dateKey(day) === dateKey(today) && (
+                    <span className="today-tag">TODAY</span>
+                  )}
 
-                    <span
-                      className={`match-status ${
-                        competition?.status?.type?.state === "in"
-                          ? "is-live"
-                          : ""
-                      }`}
-                    >
-                      {competition?.status?.type?.state === "in" && (
-                        <i></i>
-                      )}
+                  <span className="day-name">
+                    {new Intl.DateTimeFormat("en-US", {
+                      weekday: "short",
+                    }).format(day)}
+                  </span>
 
-                      {status}
-                    </span>
-                  </div>
+                  <strong>{day.getDate()}</strong>
 
-                  <div className="match-date">
-                    {new Date(match.date).toLocaleDateString(
-                      "ar-EG",
-                      {
-                        weekday: "long",
-                        day: "numeric",
-                        month: "long",
-                      }
-                    )}
-                  </div>
-
-                  <div className="match-teams">
-                    <div className="match-team">
-                      <div className="match-logo">
-                        {home?.team.logo ? (
-                          <img
-                            src={home.team.logo}
-                            alt={home.team.displayName}
-                          />
-                        ) : (
-                          <span>⚽</span>
-                        )}
-                      </div>
-
-                      <strong>
-                        {home?.team.displayName || "Home Team"}
-                      </strong>
-
-                      <small>HOME</small>
-                    </div>
-
-                    <div className="match-score">
-                      <b>{home?.score ?? "0"}</b>
-
-                      <em>:</em>
-
-                      <b>{away?.score ?? "0"}</b>
-
-                      <small>
-                        {competition?.status?.type?.shortDetail ||
-                          "MATCH"}
-                      </small>
-                    </div>
-
-                    <div className="match-team">
-                      <div className="match-logo">
-                        {away?.team.logo ? (
-                          <img
-                            src={away.team.logo}
-                            alt={away.team.displayName}
-                          />
-                        ) : (
-                          <span>⚽</span>
-                        )}
-                      </div>
-
-                      <strong>
-                        {away?.team.displayName || "Away Team"}
-                      </strong>
-
-                      <small>AWAY</small>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="match-details-btn"
-                    onClick={() => onDetails(match)}
-                  >
-                    <span>تفاصيل المباراة</span>
-                    <b>→</b>
-                  </button>
-                </article>
+                  <span className="month">
+                    {new Intl.DateTimeFormat("en-US", {
+                      month: "short",
+                    }).format(day)}
+                  </span>
+                </button>
               );
             })}
           </div>
+
+          <button
+            className="calendar-arrow"
+            onClick={() => changeDate(1)}
+          >
+            ›
+          </button>
+        </div>
+      </section>
+
+      <section className="matches-container fixtures-section">
+        <div className="fixtures-heading">
+          <div>
+            <span className="section-label">FIXTURES</span>
+            <h2>Matches on <strong>{displayDate(selectedDate)}</strong></h2>
+          </div>
+
+          <div className="matches-count">
+            <strong>{matches.length}</strong>
+            <span>MATCHES</span>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="matches-state">
+            <div className="loading-spinner" />
+            <h3>Loading matches</h3>
+          </div>
+        ) : matches.length === 0 ? (
+          <div className="matches-state">
+            <div className="state-icon">⚽</div>
+            <h3>No matches</h3>
+            <p>There are no matches scheduled for this date.</p>
+          </div>
+        ) : (
+          grouped.map(([leagueId, leagueMatches]) => (
+            <div className="league-block" key={leagueId}>
+
+              <div className="league-header">
+                <div className="league-icon">🏆</div>
+
+                <div>
+                  <span>COMPETITION</span>
+                  <h3>
+                    {LEAGUE_NAMES[leagueId] || "Football"}
+                  </h3>
+                </div>
+
+                <div className="league-total">
+                  {leagueMatches.length} MATCH
+                  {leagueMatches.length !== 1 ? "ES" : ""}
+                </div>
+              </div>
+
+              <div className="match-list">
+                {leagueMatches.map(match => {
+                  const home = getTeam(match, "home");
+                  const away = getTeam(match, "away");
+                  const live = getStatus(match) === "LIVE";
+
+                  return (
+                    <article
+                      className={`match-card ${live ? "live" : ""}`}
+                      key={match.id}
+                    >
+                      <div className="match-status">
+                        {live ? (
+                          <span className="live-status">
+                            <i /> LIVE
+                          </span>
+                        ) : (
+                          <span>{getStatus(match)}</span>
+                        )}
+
+                        <strong>{getTime(match)}</strong>
+                      </div>
+
+                      <div className="teams">
+                        <div className="team">
+                          <span>{home.name}</span>
+
+                          {home.logo ? (
+                            <img src={home.logo} alt="" />
+                          ) : (
+                            <div className="team-placeholder">⚽</div>
+                          )}
+
+                          {home.score !== null && (
+                            <strong className="score">
+                              {home.score}
+                            </strong>
+                          )}
+                        </div>
+
+                        <div className="vs">
+                          <span>VS</span>
+                        </div>
+
+                        <div className="team away">
+                          {away.score !== null && (
+                            <strong className="score">
+                              {away.score}
+                            </strong>
+                          )}
+
+                          {away.logo ? (
+                            <img src={away.logo} alt="" />
+                          ) : (
+                            <div className="team-placeholder">⚽</div>
+                          )}
+
+                          <span>{away.name}</span>
+                        </div>
+                      </div>
+
+                      <button
+                        className="details-button"
+                        onClick={() => onDetails(match)}
+                      >
+                        DETAILS <span>→</span>
+                      </button>
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
+          ))
         )}
       </section>
     </main>
   );
 }
-
-export default Matches;
-

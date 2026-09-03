@@ -1,6 +1,10 @@
 
-import { useState } from "react";
-import "./App.css";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useNavigate,
+} from "react-router-dom";
 
 import Navbar from "./components/Navbar";
 
@@ -9,103 +13,79 @@ import Matches from "./pages/Matches";
 import Live from "./pages/Live";
 import Transfers from "./pages/Transfers";
 import News from "./pages/News";
+import Favorites from "./pages/Favorites";
 import MatchDetails from "./pages/MatchDetails";
+import TeamDetails from "./pages/TeamDetails";
 
-import type { ApiEvent } from "./api/footballApi";
+import "./App.css";
 
-type Page =
-  | "home"
-  | "matches"
-  | "live"
-  | "transfers"
-  | "news"
-  | "matchDetails";
-
-function App() {
-  const [page, setPage] = useState<Page>("home");
-
-  const [selectedMatch, setSelectedMatch] =
-    useState<ApiEvent | null>(null);
-
-  const [previousPage, setPreviousPage] =
-    useState<"matches" | "live">("live");
-
-  const navigate = (newPage: Page) => {
-    setPage(newPage);
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
-
-  const openMatchDetails = (
-    match: ApiEvent,
-    from: "matches" | "live"
-  ) => {
-    setSelectedMatch(match);
-    setPreviousPage(from);
-    setPage("matchDetails");
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
-
-  const backFromDetails = () => {
-    setPage(previousPage);
-    setSelectedMatch(null);
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
+function AppRoutes() {
+  const navigate = useNavigate();
 
   return (
     <div className="app">
-      <Navbar
-        navigate={navigate}
-        currentPage={
-          page === "matchDetails"
-            ? previousPage
-            : page
-        }
-      />
+      <Navbar />
 
-      {page === "home" && <Home />}
+      <Routes>
+        {/* Home */}
+        <Route path="/" element={<Home />} />
 
-      {page === "matches" && (
-        <Matches
-          onDetails={(match) =>
-            openMatchDetails(match, "matches")
+        {/* Matches */}
+        <Route
+          path="/matches"
+          element={
+            <Matches
+              onDetails={(match) =>
+                navigate(`/match/${match.id}`, {
+                  state: {
+                    match,
+                    from: "matches",
+                  },
+                })
+              }
+            />
           }
         />
-      )}
 
-      {page === "live" && (
-        <Live
-          onDetails={(match) =>
-            openMatchDetails(match, "live")
+        {/* Live */}
+        <Route
+          path="/live"
+          element={
+            <Live
+              onDetails={(match) =>
+                navigate(`/match/${match.id}`, {
+                  state: {
+                    match,
+                    from: "live",
+                  },
+                })
+              }
+            />
           }
         />
-      )}
 
-      {page === "transfers" && <Transfers />}
+        {/* Other Pages */}
+        <Route path="/transfers" element={<Transfers />} />
+        <Route path="/news" element={<News />} />
 
-      {page === "news" && <News />}
+        {/* Favorites */}
+        <Route path="/favorites" element={<Favorites />} />
 
-      {page === "matchDetails" &&
-        selectedMatch && (
-          <MatchDetails
-            match={selectedMatch}
-            onBack={backFromDetails}
-          />
-        )}
+        {/* Team Details */}
+        <Route path="/team/:id" element={<TeamDetails />} />
+
+        {/* Match Details */}
+        <Route path="/match/:id" element={<MatchDetails />} />
+      </Routes>
     </div>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
+  );
+}
 

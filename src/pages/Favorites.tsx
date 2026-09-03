@@ -1,405 +1,243 @@
 
 import { useEffect, useState } from "react";
-
-import {
-  getMatches,
-  LEAGUES,
-  type ApiEvent,
-} from "../api/footballApi";
-
+import { useNavigate } from "react-router-dom";
+import { getTeams, type Team } from "../api/teamsApi";
 import "./Favorites.css";
 
-function Favorites() {
+const KEY = "goalzone_favorites";
+
+export default function Favorites() {
+  const navigate = useNavigate();
+
+  const [teams, setTeams] = useState<Team[]>([]);
   const [favorites, setFavorites] = useState<string[]>(
-    []
+    JSON.parse(localStorage.getItem(KEY) || "[]")
   );
-
-  const [matches, setMatches] = useState<ApiEvent[]>([]);
-
+  const [showAll, setShowAll] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const [error, setError] = useState("");
-
-  /* =========================
-     LOAD FAVORITES
-  ========================= */
-
   useEffect(() => {
-    try {
-      const saved = JSON.parse(
-        localStorage.getItem("goalzone-favorites") || "[]"
-      );
-
-      if (Array.isArray(saved)) {
-        setFavorites(saved);
-      }
-    } catch {
-      setFavorites([]);
-    }
+    getTeams()
+      .then(setTeams)
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
-  /* =========================
-     LOAD MATCHES FROM API
-  ========================= */
+  const toggleFavorite = (id: string) => {
+    const next = favorites.includes(id)
+      ? favorites.filter(x => x !== id)
+      : [...favorites, id];
 
-  useEffect(() => {
-    async function loadMatches() {
-      try {
-        setLoading(true);
-        setError("");
+    setFavorites(next);
+    localStorage.setItem(KEY, JSON.stringify(next));
+  };
 
-        const data = await getMatches(
-          LEAGUES.premierLeague
-        );
-
-        setMatches(data);
-      } catch (err) {
-        console.error(err);
-
-        setError(
-          "تعذر تحميل المباريات من API."
-        );
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadMatches();
-  }, []);
-
-  /* =========================
-     REMOVE FAVORITE
-  ========================= */
-
-  function removeFavorite(id: string) {
-    const updated = favorites.filter(
-      (favoriteId) => favoriteId !== id
-    );
-
-    setFavorites(updated);
-
-    localStorage.setItem(
-      "goalzone-favorites",
-      JSON.stringify(updated)
-    );
-
-    window.dispatchEvent(
-      new Event("favoritesUpdated")
-    );
-  }
-
-  /* =========================
-     FAVORITE MATCHES
-  ========================= */
-
-  const favoriteMatches = matches.filter(
-    (match) => favorites.includes(match.id)
+  const favoriteTeams = teams.filter(team =>
+    favorites.includes(team.id)
   );
 
   return (
     <main className="favorites-page">
 
-      {/* HERO */}
-
       <section className="favorites-hero">
-
-        <div className="favorites-hero-content">
+        <div className="favorites-container">
 
           <span className="favorites-label">
-            YOUR COLLECTION
+            GOALZONE • FAVORITES
           </span>
 
           <h1>
-            MY <strong>FAVORITES</strong>
+            My <strong>Teams</strong>
           </h1>
 
           <p>
-            كل المباريات التي أضفتها إلى
-            المفضلة في مكان واحد.
+            Follow your favorite teams, matches and news.
           </p>
 
-        </div>
+          <div className="favorite-counter">
+            <strong>{favorites.length}</strong>
+            <span>FAVORITES</span>
+          </div>
 
-        <div className="favorites-hero-icon">
-          ⭐
         </div>
-
       </section>
 
-      {/* CONTENT */}
+      <section className="favorites-container teams-section">
 
-      <section className="favorites-content">
-
-        <div className="favorites-title">
+        <div className="teams-heading">
 
           <div>
-            <span>
-              YOUR MATCHES
-            </span>
-
-            <h2>
-              Favorite Matches
-            </h2>
+            <span>YOUR TEAMS</span>
+            <h2>Favorite Teams</h2>
           </div>
 
-          <div className="favorites-total">
-
-            <strong>
-              {favorites.length}
-            </strong>
-
-            <span>
-              Favorites
-            </span>
-
-          </div>
+          <button
+            className={`add-team-btn ${showAll ? "active" : ""}`}
+            onClick={() => setShowAll(!showAll)}
+          >
+            <span>{showAll ? "×" : "+"}</span>
+            {showAll ? "Close" : "Add Team"}
+          </button>
 
         </div>
 
-        {/* LOADING */}
+        {/* FAVORITE TEAMS */}
 
-        {loading && (
-          <div className="favorites-message">
+        {loading ? (
+          <div className="favorites-loading">
+            <div />
+            <p>Loading teams...</p>
+          </div>
+        ) : favoriteTeams.length === 0 ? (
 
-            <div className="favorites-loader"></div>
+          <div className="empty-favorites">
+
+            <div className="empty-icon">☆</div>
+
+            <h3>No favorite teams yet</h3>
 
             <p>
-              جاري تحميل المباريات...
+              Add your favorite team to see it here.
             </p>
 
-          </div>
-        )}
-
-        {/* ERROR */}
-
-        {!loading && error && (
-          <div className="favorites-message">
-
-            <p className="favorites-error">
-              {error}
-            </p>
+            <button
+              className="empty-add-btn"
+              onClick={() => setShowAll(true)}
+            >
+              + Add Your First Team
+            </button>
 
           </div>
+
+        ) : (
+
+          <div className="teams-grid">
+
+            {favoriteTeams.map(team => (
+
+              <article
+                className="team-card selected"
+                key={team.id}
+                onClick={() =>
+                  navigate(`/team/${team.id}`)
+                }
+              >
+
+                <button
+                  className="favorite-star"
+                  onClick={e => {
+                    e.stopPropagation();
+                    toggleFavorite(team.id);
+                  }}
+                >
+                  ★
+                </button>
+
+                <div className="team-logo">
+
+                  {team.logo ? (
+                    <img
+                      src={team.logo}
+                      alt={team.name}
+                    />
+                  ) : (
+                    <span>⚽</span>
+                  )}
+
+                </div>
+
+                <h3>{team.name}</h3>
+
+                <span>{team.league}</span>
+
+              </article>
+
+            ))}
+
+          </div>
+
         )}
 
-        {/* EMPTY */}
+        {/* ALL TEAMS */}
 
-        {!loading &&
-          !error &&
-          favoriteMatches.length === 0 && (
-            <div className="favorites-empty">
+        {showAll && (
 
-              <div className="favorites-empty-icon">
-                ⭐
+          <div className="all-teams-panel">
+
+            <div className="all-teams-header">
+
+              <div>
+                <span>TEAM SELECTOR</span>
+                <h3>Choose a team</h3>
               </div>
 
-              <h2>
-                No Favorites Yet
-              </h2>
-
-              <p>
-                لم تقم بإضافة أي مباراة إلى
-                المفضلة حتى الآن.
-              </p>
-
-              <a href="/matches">
-                Browse Matches →
-              </a>
+              <b>{teams.length} TEAMS</b>
 
             </div>
-          )}
 
-        {/* FAVORITE MATCHES */}
+            <div className="teams-grid">
 
-        {!loading &&
-          !error &&
-          favoriteMatches.length > 0 && (
+              {teams.map(team => {
 
-            <div className="favorites-grid">
-
-              {favoriteMatches.map((match) => {
-
-                const competition =
-                  match.competitions?.[0];
-
-                const teams =
-                  competition?.competitors ?? [];
-
-                const home =
-                  teams.find(
-                    (team) =>
-                      team.homeAway === "home"
-                  );
-
-                const away =
-                  teams.find(
-                    (team) =>
-                      team.homeAway === "away"
-                  );
-
-                const status =
-                  competition
-                    ?.status
-                    ?.type
-                    ?.shortDetail ??
-                  "Upcoming";
+                const selected =
+                  favorites.includes(team.id);
 
                 return (
+
                   <article
-                    className="favorite-card"
-                    key={match.id}
+                    className={`team-card ${
+                      selected ? "selected" : ""
+                    }`}
+                    key={team.id}
                   >
 
-                    {/* CARD TOP */}
+                    <button
+                      className="favorite-star"
+                      onClick={() =>
+                        toggleFavorite(team.id)
+                      }
+                    >
+                      {selected ? "★" : "☆"}
+                    </button>
 
-                    <div className="favorite-card-top">
-
-                      <span className="favorite-status">
-                        {status}
-                      </span>
-
-                      <button
-                        className="favorite-star"
-                        type="button"
-                        onClick={() =>
-                          removeFavorite(match.id)
-                        }
-                        title="Remove from favorites"
-                      >
-                        ★
-                      </button>
-
+                    <div
+                      className="team-logo"
+                      onClick={() =>
+                        navigate(`/team/${team.id}`)
+                      }
+                    >
+                      {team.logo && (
+                        <img
+                          src={team.logo}
+                          alt={team.name}
+                        />
+                      )}
                     </div>
 
-                    {/* MATCH NAME */}
+                    <h3
+                      onClick={() =>
+                        navigate(`/team/${team.id}`)
+                      }
+                    >
+                      {team.name}
+                    </h3>
 
-                    <div className="favorite-league">
-                      {match.name}
-                    </div>
-
-                    {/* TEAMS */}
-
-                    <div className="favorite-teams">
-
-                      {/* HOME */}
-
-                      <div className="favorite-team">
-
-                        <div className="favorite-logo">
-
-                          {home?.team.logo ? (
-                            <img
-                              src={home.team.logo}
-                              alt={
-                                home.team.displayName
-                              }
-                            />
-                          ) : (
-                            <span>
-                              ⚽
-                            </span>
-                          )}
-
-                        </div>
-
-                        <h3>
-                          {home
-                            ?.team
-                            .displayName ??
-                            "Home"}
-                        </h3>
-
-                        <span>
-                          Home
-                        </span>
-
-                      </div>
-
-                      {/* SCORE */}
-
-                      <div className="favorite-score">
-
-                        <strong>
-                          {home?.score ?? "-"}
-                        </strong>
-
-                        <span>
-                          :
-                        </span>
-
-                        <strong>
-                          {away?.score ?? "-"}
-                        </strong>
-
-                      </div>
-
-                      {/* AWAY */}
-
-                      <div className="favorite-team">
-
-                        <div className="favorite-logo">
-
-                          {away?.team.logo ? (
-                            <img
-                              src={away.team.logo}
-                              alt={
-                                away.team.displayName
-                              }
-                            />
-                          ) : (
-                            <span>
-                              ⚽
-                            </span>
-                          )}
-
-                        </div>
-
-                        <h3>
-                          {away
-                            ?.team
-                            .displayName ??
-                            "Away"}
-                        </h3>
-
-                        <span>
-                          Away
-                        </span>
-
-                      </div>
-
-                    </div>
-
-                    {/* FOOTER */}
-
-                    <div className="favorite-card-footer">
-
-                      <span>
-                        ⚽ Football Match
-                      </span>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          removeFavorite(match.id)
-                        }
-                      >
-                        Remove
-                      </button>
-
-                    </div>
+                    <span>{team.league}</span>
 
                   </article>
+
                 );
               })}
 
             </div>
-          )}
+
+          </div>
+
+        )}
 
       </section>
 
     </main>
   );
 }
-
-export default Favorites;
 

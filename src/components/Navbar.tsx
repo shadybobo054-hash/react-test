@@ -1,86 +1,46 @@
+import { NavLink } from "react-router-dom";
+import Logo from "../Logo";
+import "./Navbar.css";
 
-type Page = "home" | "matches" | "live" | "news" | "transfers";
+export default function Navbar() {
+  const navClass = ({ isActive }: { isActive: boolean }) =>
+    `nav-link ${isActive ? "active" : ""}`;
 
-type NavbarProps = {
-  navigate: (page: Page) => void;
-  currentPage: Page;
-};
-
-function Navbar({ navigate, currentPage }: NavbarProps) {
   return (
     <header className="navbar">
       <div className="navbar-inner">
 
-        <button
-          type="button"
-          className="navbar-logo"
-          onClick={() => navigate("home")}
-          aria-label="GoalZone Home"
-        >
-          <span className="logo-ball">⚽</span>
-
-          <span className="logo-text">
-            <strong>GOAL</strong>
-            <span>ZONE</span>
-          </span>
-        </button>
+        <NavLink to="/" className="navbar-logo">
+          <Logo />
+        </NavLink>
 
         <nav className="navbar-links">
 
-          <button
-            type="button"
-            className={`nav-link ${
-              currentPage === "home" ? "active" : ""
-            }`}
-            onClick={() => navigate("home")}
-          >
-            <span>⌂</span>
+          <NavLink to="/" className={navClass}>
             Home
-          </button>
+          </NavLink>
 
-          <button
-            type="button"
-            className={`nav-link ${
-              currentPage === "matches" ? "active" : ""
-            }`}
-            onClick={() => navigate("matches")}
-          >
-            <span>⚽</span>
+          <NavLink to="/matches" className={navClass}>
             Matches
-          </button>
+          </NavLink>
 
-          <button
-            type="button"
-            className={`nav-link live-link ${
-              currentPage === "live" ? "active" : ""
-            }`}
-            onClick={() => navigate("live")}
+          <NavLink
+            to="/live"
+            className={({ isActive }) =>
+              `nav-link live-link ${isActive ? "active" : ""}`
+            }
           >
-            <span className="live-dot"></span>
-            LIVE
-          </button>
+            <span className="live-dot" />
+            Live
+          </NavLink>
 
-          <button
-            type="button"
-            className={`nav-link ${
-              currentPage === "transfers" ? "active" : ""
-            }`}
-            onClick={() => navigate("transfers")}
-          >
-            <span>↗</span>
+          <NavLink to="/transfers" className={navClass}>
             Transfers
-          </button>
+          </NavLink>
 
-          <button
-            type="button"
-            className={`nav-link ${
-              currentPage === "news" ? "active" : ""
-            }`}
-            onClick={() => navigate("news")}
-          >
-            <span>▤</span>
+          <NavLink to="/news" className={navClass}>
             News
-          </button>
+          </NavLink>
 
         </nav>
 
@@ -91,24 +51,30 @@ function Navbar({ navigate, currentPage }: NavbarProps) {
             className="notification-btn"
             aria-label="Notifications"
           >
-            <span>♢</span>
+            🔔
             <span className="notification-badge">3</span>
           </button>
 
+          <NavLink
+            to="/favorites"
+            className={({ isActive }) =>
+              `favorites-btn ${isActive ? "active" : ""}`
+            }
+            aria-label="Favorites"
+          >
+            ♡
+          </NavLink>
+
           <div className="stadium-status">
-            <span className="status-light"></span>
-            <span>Football Center</span>
+            <span className="status-light" />
+            <span>ONLINE</span>
           </div>
 
         </div>
+
       </div>
 
-      <div className="navbar-line">
-        <span></span>
-      </div>
+      <div className="navbar-line" />
     </header>
   );
 }
-
-export default Navbar;
-
